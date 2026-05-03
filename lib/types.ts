@@ -1,7 +1,7 @@
 import type { Timestamp } from "firebase/firestore";
 
 export interface ProductVariant {
-  size: "S" | "M" | "L" | "XL" | "XXL" | "XXXL";
+  size: "XS" | "S" | "M" | "L" | "XL" | "XXL" | "XXXL";
   color: string;
   colorHex: string;
   quantity: number;
@@ -64,5 +64,5 @@ export type ProductSize = ProductVariant["size"];
 export type OrderStatus = Order["status"];
 export type ShippingRegion = Order["shippingRegion"];
 
-export const SIZES: ProductSize[] = ["S", "M", "L", "XL", "XXL", "XXXL"];
+export const SIZES: ProductSize[] = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
 export const CATEGORIES: ProductCategory[] = ["dresses", "tops", "jackets", "coats", "accessories"];
