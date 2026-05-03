@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-brown:       #3B1F0F;
+  --brand-cream:       #FAF7F2;
+  --brand-gold:        #C9A84C;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FAF7F2;
+  color: #3B1F0F;
+}
+
+/* RTL support: flip horizontal padding/margin utilities */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Swipe gallery */
+.snap-x { scroll-snap-type: x mandatory; }
+.snap-start { scroll-snap-align: start; }
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+}
+
