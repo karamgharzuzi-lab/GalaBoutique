@@ -17,11 +17,11 @@ import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { key: "all",          label: "All" },
-  { key: "lowStock",     label: "Low Stock" },
-  { key: "outOfStock",   label: "Out of Stock" },
-  { key: "bestSeller",   label: "Best Sellers" },
-  { key: "specialOffer", label: "Offers" },
+  { key: "all",          label: "הכל" },
+  { key: "lowStock",     label: "מלאי נמוך" },
+  { key: "outOfStock",   label: "אזל" },
+  { key: "bestSeller",   label: "נמכרים" },
+  { key: "specialOffer", label: "מבצעים" },
 ] as const;
 
 type TabKey = typeof TABS[number]["key"];
@@ -47,7 +47,7 @@ function ProductsInner() {
   }, []);
 
   async function handleSeed() {
-    if (!confirm("Add 10 sample products? You can delete them later.")) return;
+    if (!confirm("להוסיף 10 מוצרי דוגמה? ניתן למחוק אותם לאחר מכן.")) return;
     setSeeding(true);
     try {
       const count = await seedProducts();
@@ -109,18 +109,18 @@ function ProductsInner() {
     <div className="p-5 md:p-8 max-w-5xl mx-auto pb-24 md:pb-8">
       <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
         <div>
-          <p className="eyebrow mb-1">Catalog</p>
-          <h1 className="h-display text-3xl text-brand-brown">Products</h1>
+          <p className="eyebrow mb-1">קטלוג</p>
+          <h1 className="h-display text-3xl text-brand-brown">מוצרים</h1>
         </div>
         <div className="flex items-center gap-2">
           <Link href={`/${locale}/admin/inventory`}>
-            <Button variant="outline" size="sm">Bulk Stock</Button>
+            <Button variant="outline" size="sm">עדכון מלאי</Button>
           </Link>
           <Button variant="outline" size="sm" loading={seeding} onClick={handleSeed}>
-            {seeding ? "Seeding..." : "Sample Data"}
+            {seeding ? "מוסיף..." : "דוגמאות"}
           </Button>
           <Link href={`/${locale}/admin/products/new`}>
-            <Button size="sm">+ New</Button>
+            <Button size="sm">+ חדש</Button>
           </Link>
         </div>
       </div>
@@ -151,7 +151,7 @@ function ProductsInner() {
       <div className="flex flex-wrap gap-2 mb-5">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="חיפוש מוצרים..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm bg-white text-brand-brown flex-1 min-w-[180px] focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
@@ -161,21 +161,21 @@ function ProductsInner() {
           onChange={(e) => setCategory(e.target.value)}
           className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm bg-white text-brand-brown"
         >
-          <option value="all">All categories</option>
-          <option value="dresses">Dresses</option>
-          <option value="tops">Tops</option>
-          <option value="jackets">Jackets</option>
-          <option value="coats">Coats</option>
-          <option value="accessories">Accessories</option>
+          <option value="all">כל הקטגוריות</option>
+          <option value="dresses">שמלות</option>
+          <option value="tops">חולצות</option>
+          <option value="jackets">ג׳קטים</option>
+          <option value="coats">מעילים</option>
+          <option value="accessories">אביזרים</option>
         </select>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
           className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm bg-white text-brand-brown"
         >
-          <option value="newest">Newest</option>
-          <option value="price">Price</option>
-          <option value="stock">Stock Level</option>
+          <option value="newest">חדשים</option>
+          <option value="price">מחיר</option>
+          <option value="stock">רמת מלאי</option>
         </select>
       </div>
 
@@ -186,7 +186,7 @@ function ProductsInner() {
         </div>
       ) : displayed.length === 0 ? (
         <div className="text-center py-16 text-brand-brown/40">
-          <p className="h-display text-2xl text-brand-brown/50">No products</p>
+          <p className="h-display text-2xl text-brand-brown/50">אין מוצרים</p>
         </div>
       ) : (
         <div className="bg-white border border-brand-cream-dark rounded-xl overflow-hidden divide-y divide-brand-cream-dark">
@@ -210,18 +210,18 @@ function ProductsInner() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-brand-brown truncate">{product.name.en}</p>
+                  <p className="text-sm font-medium text-brand-brown truncate">{product.name.he || product.name.en}</p>
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className="text-[11px] uppercase tracking-wide text-brand-brown/50">{product.category}</span>
                     {product.isBestSeller && <Badge variant="sale">★</Badge>}
-                    {product.isSpecialOffer && <Badge variant="sale">Sale</Badge>}
+                    {product.isSpecialOffer && <Badge variant="sale">מבצע</Badge>}
                     <span className={cn(
                       "text-xs font-medium",
                       isOOS  ? "text-red-500" :
                       isLow  ? "text-orange-600" :
                               "text-brand-brown/60"
                     )}>
-                      {isOOS ? "Out of stock" : `${totalStock} in stock`}
+                      {isOOS ? "אזל מהמלאי" : `${totalStock} במלאי`}
                     </span>
                   </div>
                 </div>
@@ -229,7 +229,7 @@ function ProductsInner() {
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Link href={`/${locale}/admin/products/${product.id}`}>
-                    <Button variant="outline" size="sm">Edit</Button>
+                    <Button variant="outline" size="sm">ערוך</Button>
                   </Link>
                   <button
                     onClick={() => setDeleteId(product.id)}
@@ -248,13 +248,13 @@ function ProductsInner() {
       )}
 
       {/* Delete confirmation */}
-      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Product">
+      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="מחיקת מוצר">
         <p className="text-sm text-brand-brown/80 mb-6">
-          Are you sure you want to delete this product? This cannot be undone.
+          האם אתה בטוח שברצונך למחוק מוצר זה? פעולה זו אינה הפיכה.
         </p>
         <div className="flex gap-3">
-          <Button variant="outline" fullWidth onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" fullWidth loading={deleting} onClick={handleDelete}>Delete</Button>
+          <Button variant="outline" fullWidth onClick={() => setDeleteId(null)}>ביטול</Button>
+          <Button variant="danger" fullWidth loading={deleting} onClick={handleDelete}>מחק</Button>
         </div>
       </Modal>
     </div>

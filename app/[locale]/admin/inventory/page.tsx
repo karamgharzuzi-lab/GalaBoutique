@@ -98,11 +98,11 @@ function InventoryInner() {
     <div className="p-5 md:p-8 max-w-5xl mx-auto pb-24 md:pb-8">
       <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
         <div>
-          <p className="eyebrow mb-1">Bulk update</p>
-          <h1 className="h-display text-3xl text-brand-brown">Stock</h1>
+          <p className="eyebrow mb-1">עדכון כמויות</p>
+          <h1 className="h-display text-3xl text-brand-brown">מלאי</h1>
         </div>
         {rows.some((r) => r.dirty) && (
-          <Button size="sm" loading={saving} onClick={saveAll}>Save All Changes</Button>
+          <Button size="sm" loading={saving} onClick={saveAll}>שמור הכל</Button>
         )}
       </div>
 
@@ -115,11 +115,11 @@ function InventoryInner() {
           <table className="w-full text-sm">
             <thead className="border-b border-brand-cream-dark bg-brand-cream/30">
               <tr>
-                <th className="text-start px-4 py-3 eyebrow">Product</th>
-                <th className="text-start px-4 py-3 eyebrow">Size</th>
-                <th className="text-start px-4 py-3 eyebrow">Color</th>
-                <th className="text-center px-4 py-3 eyebrow">Current</th>
-                <th className="text-center px-4 py-3 eyebrow">New</th>
+                <th className="text-start px-4 py-3 eyebrow">מוצר</th>
+                <th className="text-start px-4 py-3 eyebrow">מידה</th>
+                <th className="text-start px-4 py-3 eyebrow">צבע</th>
+                <th className="text-center px-4 py-3 eyebrow">נוכחי</th>
+                <th className="text-center px-4 py-3 eyebrow">חדש</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -157,7 +157,7 @@ function InventoryInner() {
                   </td>
                   <td className="px-4 py-3 text-end">
                     {row.dirty && (
-                      <Button size="sm" variant="secondary" onClick={() => saveRow(idx)}>Save</Button>
+                      <Button size="sm" variant="secondary" onClick={() => saveRow(idx)}>שמור</Button>
                     )}
                   </td>
                 </tr>

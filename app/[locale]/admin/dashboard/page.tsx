@@ -59,8 +59,8 @@ export default function DashboardPage() {
 
   const statusBadge = (status: Order["status"]) => {
     const labels: Record<Order["status"], string> = {
-      pending: "Pending", confirmed: "Confirmed",
-      shipped: "Shipped", delivered: "Delivered", failed: "Failed",
+      pending: "ממתין", confirmed: "אושר",
+      shipped: "נשלח", delivered: "נמסר", failed: "נכשל",
     };
     return <Badge variant={status}>{labels[status]}</Badge>;
   };
@@ -69,16 +69,16 @@ export default function DashboardPage() {
     <AdminLayout locale={locale}>
       <div className="p-5 md:p-8 max-w-5xl mx-auto space-y-6 pb-24 md:pb-8">
         <div>
-          <p className="eyebrow mb-1">Overview</p>
-          <h1 className="h-display text-3xl text-brand-brown">Dashboard</h1>
+          <p className="eyebrow mb-1">סקירה</p>
+          <h1 className="h-display text-3xl text-brand-brown">לוח בקרה</h1>
         </div>
 
         {/* 3 key stat cards */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today's Orders",  value: loading ? "—" : stats?.count ?? 0,                                      sub: stats?.revenue ? `₪${stats.revenue.toLocaleString()}` : "" },
-            { label: "Pending",         value: loading ? "—" : pendingCount,                                            sub: "to confirm" },
-            { label: "Low Stock",       value: loading ? "—" : lowStock.length,                                         sub: "variants" },
+            { label: "הזמנות היום",  value: loading ? "—" : stats?.count ?? 0,    sub: stats?.revenue ? `₪${stats.revenue.toLocaleString()}` : "" },
+            { label: "ממתינות",      value: loading ? "—" : pendingCount,          sub: "לאישור" },
+            { label: "מלאי נמוך",   value: loading ? "—" : lowStock.length,       sub: "וריאנטים" },
           ].map((s) => (
             <div key={s.label} className="bg-white border border-brand-cream-dark rounded-xl p-4">
               <p className="eyebrow mb-2">{s.label}</p>
@@ -98,13 +98,13 @@ export default function DashboardPage() {
             href={`/${locale}/admin/products/new`}
             className="inline-flex items-center bg-brand-brown text-brand-cream px-5 py-2.5 rounded-md text-xs font-semibold tracking-luxe uppercase hover:bg-brand-brown-light transition-colors tap-soft"
           >
-            + New Product
+            + מוצר חדש
           </Link>
           <Link
             href={`/${locale}/admin/orders`}
             className="relative inline-flex items-center border border-brand-brown text-brand-brown px-5 py-2.5 rounded-md text-xs font-semibold tracking-luxe uppercase hover:bg-brand-brown/5 transition-colors tap-soft"
           >
-            All Orders
+            כל ההזמנות
             {pendingCount > 0 && (
               <span className="ms-2 min-w-[18px] h-[18px] px-1 bg-brand-gold text-brand-brown text-[10px] font-bold rounded-full flex items-center justify-center tracking-normal">
                 {pendingCount}
@@ -118,17 +118,17 @@ export default function DashboardPage() {
           {/* Low stock alerts */}
           <div className="bg-white border border-brand-cream-dark rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="eyebrow">Low Stock</p>
+              <p className="eyebrow">מלאי נמוך</p>
               {lowStock.length > 0 && (
                 <Link href={`/${locale}/admin/products?filter=lowStock`} className="text-[11px] tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40">
-                  Manage
+                  ניהול
                 </Link>
               )}
             </div>
             {loading ? (
               <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
             ) : lowStock.length === 0 ? (
-              <p className="text-sm text-brand-brown/40 py-4 text-center">All stocked up</p>
+              <p className="text-sm text-brand-brown/40 py-4 text-center">המלאי תקין</p>
             ) : (
               <div className="space-y-1.5">
                 {lowStock.slice(0, 6).map((item, i) => (
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                     className="flex items-center justify-between text-sm py-1 hover:text-brand-gold transition-colors"
                   >
                     <span className="text-brand-brown/80 truncate">{item.productName} · {item.size} · {item.color}</span>
-                    <Badge variant="lowStock">{item.qty} left</Badge>
+                    <Badge variant="lowStock">{item.qty} נותרו</Badge>
                   </Link>
                 ))}
               </div>
@@ -148,16 +148,16 @@ export default function DashboardPage() {
           {/* Recent orders */}
           <div className="bg-white border border-brand-cream-dark rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="eyebrow">Recent Orders</p>
+              <p className="eyebrow">הזמנות אחרונות</p>
               <Link href={`/${locale}/admin/orders`} className="text-[11px] tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40">
-                View all
+                הצג הכל
               </Link>
             </div>
 
             {loading ? (
               <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : recentOrders.length === 0 ? (
-              <p className="text-sm text-brand-brown/40 text-center py-4">No orders yet</p>
+              <p className="text-sm text-brand-brown/40 text-center py-4">אין הזמנות עדיין</p>
             ) : (
               <div className="space-y-1.5">
                 {recentOrders.slice(0, 6).map((order) => (

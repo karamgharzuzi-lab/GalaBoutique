@@ -25,8 +25,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       <ToastProvider>
         <div className="p-5 md:p-8 max-w-4xl mx-auto pb-24 md:pb-8">
           <div className="mb-6">
-            <p className="eyebrow mb-1">Catalog</p>
-            <h1 className="h-display text-3xl text-brand-brown">Edit Product</h1>
+            <p className="eyebrow mb-1">קטלוג</p>
+            <h1 className="h-display text-3xl text-brand-brown">עריכת מוצר</h1>
           </div>
           {loading ? (
             <div className="flex justify-center py-20">
@@ -35,7 +35,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           ) : product ? (
             <ProductForm initial={product} />
           ) : (
-            <p className="text-brand-brown/60">Product not found.</p>
+            <p className="text-brand-brown/60">המוצר לא נמצא.</p>
           )}
         </div>
       </ToastProvider>

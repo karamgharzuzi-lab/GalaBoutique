@@ -40,10 +40,10 @@ const Icon = {
 };
 
 const NAV_ITEMS: Array<{ href: string; label: string; icon: ReactNode }> = [
-  { href: "/admin/dashboard",  label: "Dashboard", icon: Icon.dash },
-  { href: "/admin/products",   label: "Products",  icon: Icon.products },
-  { href: "/admin/orders",     label: "Orders",    icon: Icon.orders },
-  { href: "/admin/settings",   label: "Settings",  icon: Icon.settings },
+  { href: "/admin/dashboard",  label: "לוח בקרה", icon: Icon.dash },
+  { href: "/admin/products",   label: "מוצרים",   icon: Icon.products },
+  { href: "/admin/orders",     label: "הזמנות",   icon: Icon.orders },
+  { href: "/admin/settings",   label: "הגדרות",   icon: Icon.settings },
 ];
 
 export default function AdminLayout({
@@ -105,7 +105,7 @@ export default function AdminLayout({
         <aside className="hidden md:flex flex-col w-60 bg-brand-brown text-brand-cream flex-shrink-0">
           <div className="px-6 py-6 border-b border-white/10">
             <Link href={`/${locale}`} className="h-display text-xl text-brand-gold tracking-wide">GalaBoutique</Link>
-            <p className="eyebrow mt-1 text-white/40">Admin</p>
+            <p className="eyebrow mt-1 text-white/40">ניהול</p>
           </div>
           <nav className="flex-1 py-4 px-2 space-y-0.5">
             {NAV_ITEMS.map((item) => {
@@ -128,9 +128,9 @@ export default function AdminLayout({
           </nav>
           <button
             onClick={async () => { await signOut(); router.replace(`/${locale}/admin/login`); }}
-            className="px-6 py-4 text-xs tracking-luxe uppercase text-white/40 hover:text-white border-t border-white/10 text-start transition-colors"
+            className="px-6 py-4 text-sm text-white/40 hover:text-white border-t border-white/10 text-start transition-colors"
           >
-            Sign Out
+            התנתק
           </button>
         </aside>
 
@@ -139,7 +139,7 @@ export default function AdminLayout({
           {/* Mobile header */}
           <header className="md:hidden bg-brand-brown text-brand-cream px-5 h-14 flex items-center justify-between flex-shrink-0">
             <span className="h-display text-lg text-brand-gold tracking-wide">GalaBoutique</span>
-            <span className="eyebrow text-white/40">Admin</span>
+            <span className="eyebrow text-white/40">ניהול</span>
           </header>
 
           <main className="flex-1 overflow-y-auto">{children}</main>

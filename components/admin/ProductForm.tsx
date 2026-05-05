@@ -52,7 +52,7 @@ function Section({
         className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-brand-cream/30 transition-colors text-start"
       >
         <div>
-          <p className="eyebrow mb-0.5">Section</p>
+          <p className="eyebrow mb-0.5">חלק</p>
           <h2 className="h-display text-lg text-brand-brown leading-tight">{title}</h2>
           {subtitle && <p className="text-xs text-brand-brown/50 mt-0.5">{subtitle}</p>}
         </div>
@@ -188,7 +188,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
       );
       setImages((prev) => [...prev, ...urls]);
     } catch {
-      toast("Upload failed", "error");
+      toast("העלאה נכשלה", "error");
     }
     setUploading(false);
   }
@@ -229,7 +229,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
 
   async function handleSave() {
     if (!nameEn.trim()) {
-      toast("English name is required", "error");
+      toast("שם באנגלית הוא שדה חובה", "error");
       setOpenSection("basics");
       return;
     }
@@ -265,14 +265,14 @@ export default function ProductForm({ initial }: ProductFormProps) {
     try {
       if (initial) {
         await updateProduct(initial.id, data);
-        toast("Product saved");
+        toast("המוצר נשמר");
       } else {
         await createProduct(data);
-        toast("Product created");
+        toast("המוצר נוצר");
         router.push(`/${locale}/admin/products`);
       }
     } catch {
-      toast("Failed to save product", "error");
+      toast("שמירת המוצר נכשלה", "error");
     }
     setSaving(false);
   }
@@ -283,26 +283,26 @@ export default function ProductForm({ initial }: ProductFormProps) {
     <div className="space-y-3">
       {/* Section 1: Basics */}
       <Section
-        title="Basics"
-        subtitle={`${nameEn || "Untitled"} · ${category}`}
+        title="פרטי מוצר"
+        subtitle={`${nameEn || "ללא שם"} · ${category}`}
         open={openSection === "basics"}
         onToggle={() => setOpenSection(openSection === "basics" ? "media" : "basics")}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <FieldLabel>Name (English)</FieldLabel>
+            <FieldLabel>שם (אנגלית)</FieldLabel>
             <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={inputBase} />
           </div>
           <div>
-            <FieldLabel>Name (Hebrew)</FieldLabel>
+            <FieldLabel>שם (עברית)</FieldLabel>
             <input value={nameHe} onChange={(e) => setNameHe(e.target.value)} dir="rtl" className={inputBase} />
           </div>
           <div>
-            <FieldLabel>Description (English)</FieldLabel>
+            <FieldLabel>תיאור (אנגלית)</FieldLabel>
             <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} className={cn(inputBase, "resize-none")} />
           </div>
           <div>
-            <FieldLabel>Description (Hebrew)</FieldLabel>
+            <FieldLabel>תיאור (עברית)</FieldLabel>
             <textarea value={descHe} onChange={(e) => setDescHe(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
           </div>
         </div>
@@ -311,28 +311,28 @@ export default function ProductForm({ initial }: ProductFormProps) {
 
         <div className="flex flex-wrap items-center gap-5">
           <div>
-            <FieldLabel>Category</FieldLabel>
+            <FieldLabel>קטגוריה</FieldLabel>
             <select value={category} onChange={(e) => setCategory(e.target.value as Product["category"])}
-              className="border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm bg-brand-cream text-brand-brown capitalize"
+              className="border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm bg-brand-cream text-brand-brown"
             >
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <label className="flex items-center gap-2 cursor-pointer mt-5">
             <input type="checkbox" checked={isBestSeller} onChange={(e) => setIsBestSeller(e.target.checked)} className="rounded accent-brand-gold" />
-            <span className="text-sm text-brand-brown">Best Seller</span>
+            <span className="text-sm text-brand-brown">נמכר ביותר</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer mt-5">
             <input type="checkbox" checked={isSpecialOffer} onChange={(e) => setIsSpecialOffer(e.target.checked)} className="rounded accent-brand-gold" />
-            <span className="text-sm text-brand-brown">Special Offer</span>
+            <span className="text-sm text-brand-brown">מבצע מיוחד</span>
           </label>
         </div>
       </Section>
 
       {/* Section 2: Media */}
       <Section
-        title="Media"
-        subtitle={`${images.length} image${images.length === 1 ? "" : "s"}`}
+        title="תמונות"
+        subtitle={`${images.length} תמונ${images.length === 1 ? "ה" : "ות"}`}
         open={openSection === "media"}
         onToggle={() => setOpenSection(openSection === "media" ? "variants" : "media")}
       >
@@ -342,13 +342,13 @@ export default function ProductForm({ initial }: ProductFormProps) {
           onDragOver={(e) => e.preventDefault()}
           className="border border-dashed border-brand-cream-dark rounded-md p-8 text-center cursor-pointer hover:border-brand-gold/50 hover:bg-brand-cream/30 transition-colors"
         >
-          <p className="text-sm text-brand-brown/70">Drop images here, or click to select</p>
-          <p className="text-xs text-brand-brown/40 mt-1">First image is the primary photo</p>
+          <p className="text-sm text-brand-brown/70">גרור תמונות לכאן, או לחץ לבחירה</p>
+          <p className="text-xs text-brand-brown/40 mt-1">התמונה הראשונה היא הראשית</p>
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
           onChange={(e) => handleImageUpload(e.target.files)}
         />
-        {uploading && <p className="text-xs text-brand-brown/60 animate-pulse mt-2">Uploading...</p>}
+        {uploading && <p className="text-xs text-brand-brown/60 animate-pulse mt-2">מעלה...</p>}
         {images.length > 0 && (
           <div className="flex gap-3 flex-wrap mt-4">
             {images.map((url, i) => (
@@ -359,14 +359,14 @@ export default function ProductForm({ initial }: ProductFormProps) {
                 {i > 0 && (
                   <button onClick={() => moveImageLeft(i)}
                     className="absolute top-0 left-0 bg-brand-gold text-brand-brown w-5 h-5 rounded-br-md text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Move left"
+                    aria-label="הזז שמאלה"
                   >←</button>
                 )}
                 <button onClick={() => removeImage(url)}
                   className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 rounded-bl-md text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Remove"
+                  aria-label="הסר"
                 >×</button>
-                {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] text-center bg-brand-gold/95 text-brand-brown rounded-b-md py-0.5 font-bold tracking-luxe uppercase">Primary</span>}
+                {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] text-center bg-brand-gold/95 text-brand-brown rounded-b-md py-0.5 font-bold tracking-luxe uppercase">ראשית</span>}
               </div>
             ))}
           </div>
@@ -375,14 +375,14 @@ export default function ProductForm({ initial }: ProductFormProps) {
 
       {/* Section 3: Variants */}
       <Section
-        title="Variants & Pricing"
-        subtitle={`${colors.length} color${colors.length === 1 ? "" : "s"} · ${variantCount} variant${variantCount === 1 ? "" : "s"} priced`}
+        title="וריאנטים ומחירים"
+        subtitle={`${colors.length} צבע${colors.length === 1 ? "" : "ים"} · ${variantCount} וריאנט${variantCount === 1 ? "" : "ים"} עם מחיר`}
         open={openSection === "variants"}
         onToggle={() => setOpenSection(openSection === "variants" ? "basics" : "variants")}
       >
         {/* Colors row */}
         <div className="mb-4">
-          <FieldLabel>Colors</FieldLabel>
+          <FieldLabel>צבעים</FieldLabel>
           <div className="flex flex-wrap gap-2 mb-3">
             {colors.map((c) => (
               <div key={c.name} className="flex items-center gap-1.5 bg-brand-cream rounded-md px-3 py-1.5 border border-brand-cream-dark">
@@ -394,7 +394,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <input
-              type="text" placeholder="Color name (optional)" value={newColorName}
+              type="text" placeholder="שם הצבע (אופציונלי)" value={newColorName}
               onChange={(e) => setNewColorName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addColor())}
               className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm text-brand-brown bg-brand-cream w-44 focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
@@ -403,19 +403,19 @@ export default function ProductForm({ initial }: ProductFormProps) {
               className="w-10 h-10 border border-brand-cream-dark rounded-md cursor-pointer"
               aria-label="Pick color"
             />
-            <Button variant="outline" size="sm" onClick={addColor}>Add Color</Button>
+            <Button variant="outline" size="sm" onClick={addColor}>הוסף צבע</Button>
           </div>
         </div>
 
         <div className="hairline mb-4" />
 
         {/* Variants table */}
-        <FieldLabel>Variants — Size × Color</FieldLabel>
+        <FieldLabel>וריאנטים — מידה × צבע</FieldLabel>
         <div className="overflow-x-auto -mx-1 px-1">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-brand-cream-dark">
-                <th className="text-start py-2 pr-3 eyebrow w-14">Size</th>
+                <th className="text-start py-2 pr-3 eyebrow w-14">מידה</th>
                 {colors.map((c) => (
                   <th key={c.name} className="text-center py-2 px-2 eyebrow min-w-[140px]">
                     <span className="inline-flex items-center gap-1.5">
@@ -473,10 +473,10 @@ export default function ProductForm({ initial }: ProductFormProps) {
       {/* Save bar — sticky */}
       <div className="sticky bottom-16 md:bottom-0 z-20 bg-brand-cream/95 backdrop-blur-md py-4 -mx-5 px-5 border-t border-brand-cream-dark flex justify-end gap-3">
         <Button variant="outline" onClick={() => router.push(`/${locale}/admin/products`)}>
-          Cancel
+          ביטול
         </Button>
         <Button loading={saving} onClick={handleSave}>
-          {saving ? "Saving..." : initial ? "Save Changes" : "Create Product"}
+          {saving ? "שומר..." : initial ? "שמור שינויים" : "צור מוצר"}
         </Button>
       </div>
     </div>

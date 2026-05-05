@@ -34,12 +34,12 @@ function SettingsInner() {
   return (
     <div className="p-5 md:p-8 max-w-lg mx-auto pb-24 md:pb-8">
       <div className="mb-6">
-        <p className="eyebrow mb-1">Configuration</p>
-        <h1 className="h-display text-3xl text-brand-brown">Settings</h1>
+        <p className="eyebrow mb-1">הגדרות</p>
+        <h1 className="h-display text-3xl text-brand-brown">הגדרות</h1>
       </div>
 
       <div className="bg-white border border-brand-cream-dark rounded-xl p-6 space-y-5">
-        <p className="eyebrow">Shipping Prices</p>
+        <p className="eyebrow">מחירי משלוח</p>
 
         {loading ? (
           <div className="flex justify-center py-8">
@@ -48,10 +48,10 @@ function SettingsInner() {
         ) : (
           <>
             {[
-              { key: "north",  label: "North (₪)" },
-              { key: "center", label: "Center (₪)" },
-              { key: "south",  label: "South (₪)" },
-              { key: "freeShippingThreshold", label: "Free Shipping Threshold (₪)" },
+              { key: "north",  label: "צפון (₪)" },
+              { key: "center", label: "מרכז (₪)" },
+              { key: "south",  label: "דרום (₪)" },
+              { key: "freeShippingThreshold", label: "סף משלוח חינם (₪)" },
             ].map(({ key, label }) => (
               <div key={key}>
                 <label className="block text-[11px] font-semibold tracking-wide uppercase text-brand-brown/70 mb-1.5">{label}</label>
@@ -67,12 +67,12 @@ function SettingsInner() {
             ))}
 
             <div className="bg-brand-cream rounded-xl p-3 text-xs text-brand-brown/70">
-              <p>When order subtotal ≥ threshold, shipping is free for all regions.</p>
-              <p className="mt-1">Changes apply live on the storefront immediately after saving.</p>
+              <p>כשסכום ההזמנה ≥ לסף, המשלוח חינם לכל האזורים.</p>
+              <p className="mt-1">השינויים נכנסים לתוקף מיד לאחר השמירה.</p>
             </div>
 
             <Button fullWidth loading={saving} onClick={handleSave}>
-              {saving ? "Saving..." : "Save Settings"}
+              {saving ? "שומר..." : "שמור הגדרות"}
             </Button>
           </>
         )}

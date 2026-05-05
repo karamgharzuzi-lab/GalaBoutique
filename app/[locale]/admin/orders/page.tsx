@@ -20,11 +20,19 @@ const STATUS_PROGRESSION: Record<Order["status"], Order["status"] | null> = {
 };
 
 const STATUS_LABELS: Record<Order["status"], string> = {
-  pending:   "Confirm",
-  confirmed: "Mark Shipped",
-  shipped:   "Mark Delivered",
-  delivered: "Delivered",
-  failed:    "Failed",
+  pending:   "אשר הזמנה",
+  confirmed: "סמן כנשלח",
+  shipped:   "סמן כנמסר",
+  delivered: "נמסר",
+  failed:    "נכשל",
+};
+
+const STATUS_HE: Record<Order["status"], string> = {
+  pending:   "ממתין",
+  confirmed: "אושר",
+  shipped:   "נשלח",
+  delivered: "נמסר",
+  failed:    "נכשל",
 };
 
 function formatDate(ts: Order["createdAt"]): string {
@@ -102,10 +110,10 @@ function OrdersInner() {
     <div className="p-5 md:p-8 max-w-5xl mx-auto pb-24 md:pb-8">
       <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
         <div>
-          <p className="eyebrow mb-1">Sales</p>
-          <h1 className="h-display text-3xl text-brand-brown">Orders</h1>
+          <p className="eyebrow mb-1">מכירות</p>
+          <h1 className="h-display text-3xl text-brand-brown">הזמנות</h1>
         </div>
-        <Button variant="outline" size="sm" onClick={exportCSV}>Export CSV</Button>
+        <Button variant="outline" size="sm" onClick={exportCSV}>ייצוא CSV</Button>
       </div>
 
       {/* Status filter — pill-style under tab bar */}
@@ -119,7 +127,7 @@ function OrdersInner() {
               statusFilter === s ? "text-brand-brown" : "text-brand-brown/45 hover:text-brand-brown/80"
             )}
           >
-            {s === "all" ? "All" : s}
+            {s === "all" ? "הכל" : STATUS_HE[s as Order["status"]]}
             {statusFilter === s && (
               <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-brand-gold rounded-full" />
             )}
@@ -134,7 +142,7 @@ function OrdersInner() {
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16">
-          <p className="h-display text-2xl text-brand-brown/50">No orders</p>
+          <p className="h-display text-2xl text-brand-brown/50">אין הזמנות</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -151,10 +159,10 @@ function OrdersInner() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="font-semibold text-brand-brown text-sm">{order.customer.name}</span>
-                      <Badge variant={order.status}>{order.status}</Badge>
+                      <Badge variant={order.status}>{STATUS_HE[order.status]}</Badge>
                     </div>
                     <p className="text-[11px] text-brand-brown/50">
-                      #{order.id.slice(0,6).toUpperCase()} · {formatDate(order.createdAt)} · {order.items.length} item{order.items.length > 1 ? "s" : ""}
+                      #{order.id.slice(0,6).toUpperCase()} · {formatDate(order.createdAt)} · {order.items.length} פריטים
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -197,8 +205,8 @@ function OrdersInner() {
                     {/* Shipping line */}
                     <div className="hairline" />
                     <div className="flex justify-between text-xs text-brand-brown/60">
-                      <span>Shipping ({order.shippingRegion})</span>
-                      <span>{order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}</span>
+                      <span>משלוח ({order.shippingRegion === "north" ? "צפון" : order.shippingRegion === "center" ? "מרכז" : "דרום"})</span>
+                      <span>{order.shippingCost === 0 ? "חינם" : `₪${order.shippingCost}`}</span>
                     </div>
 
                     {/* Actions */}
@@ -223,7 +231,7 @@ function OrdersInner() {
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
                           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.84L0 24l6.337-1.496A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.762.888.924-3.67-.237-.376A9.818 9.818 0 1112 21.818z" />
                         </svg>
-                        WhatsApp
+                        וואטסאפ
                       </a>
                     </div>
                   </div>
