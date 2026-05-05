@@ -34,7 +34,9 @@ export async function requestAndSaveFCMToken(): Promise<string | null> {
     });
 
     if (token) {
-      await setDoc(doc(db, "admin", "fcm_tokens", token), {
+      // /fcm_tokens/{token} — 2 segments = valid document path.
+      // Cloud Function reads this same collection via Admin SDK.
+      await setDoc(doc(db, "fcm_tokens", token), {
         token,
         createdAt: serverTimestamp(),
       });
