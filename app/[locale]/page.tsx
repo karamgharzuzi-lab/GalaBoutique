@@ -33,18 +33,29 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
     <StorefrontLayout locale={locale}>
       {/* Hero */}
       <section className="relative bg-brand-brown text-brand-cream overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-brown via-brand-brown-light/80 to-brand-brown opacity-90" />
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at 30% 20%, rgba(201,168,76,0.35), transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(232,201,106,0.18), transparent 60%)",
+          }}
+        />
         <div className="relative px-6 py-20 md:py-32 max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 text-brand-gold">
+          <p className="eyebrow text-brand-gold/80 mb-5">{t("heroSubtitle")}</p>
+          <h1 className="h-display text-5xl md:text-7xl text-brand-cream mb-3 leading-[1.05] text-balance">
             GalaBoutique
           </h1>
-          <p className="text-xl md:text-2xl font-light text-brand-cream/90 mb-2">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="w-10 h-px bg-brand-gold/60" />
+            <span className="w-1.5 h-1.5 bg-brand-gold rotate-45" />
+            <span className="w-10 h-px bg-brand-gold/60" />
+          </div>
+          <p className="h-display text-xl md:text-2xl text-brand-cream/85 italic font-normal mb-10 text-balance">
             {t("heroTagline")}
           </p>
-          <p className="text-sm text-brand-cream/60 mb-8">{t("heroSubtitle")}</p>
           <Link
             href={`/${locale}/shop`}
-            className="inline-flex items-center gap-2 bg-brand-gold text-brand-brown font-semibold px-8 py-3 rounded-full hover:bg-brand-gold-light transition-colors text-base"
+            className="inline-flex items-center justify-center bg-brand-gold text-brand-brown font-semibold tracking-luxe uppercase text-xs px-9 py-3.5 rounded-sm hover:bg-brand-gold-light transition-colors tap-soft"
           >
             {t("shopNow")}
           </Link>
@@ -52,14 +63,19 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
       </section>
 
       {/* Category Pills */}
-      <section className="px-4 py-6">
-        <h2 className="text-lg font-bold text-brand-brown mb-4">{t("shopByCategory")}</h2>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <section className="px-5 pt-10 pb-2">
+        <div className="flex items-end justify-between mb-5">
+          <div>
+            <p className="eyebrow mb-1">{t("shopByCategory")}</p>
+            <h2 className="h-display text-2xl text-brand-brown">Collections</h2>
+          </div>
+        </div>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-5 px-5">
           {categories.map((cat) => (
             <Link
               key={cat.key}
               href={`/${locale}/shop?category=${cat.key}`}
-              className="flex-shrink-0 px-4 py-2 bg-white border border-brand-cream-dark rounded-full text-sm font-medium text-brand-brown hover:bg-brand-brown hover:text-brand-cream hover:border-brand-brown transition-colors"
+              className="flex-shrink-0 px-5 py-2.5 bg-white border border-brand-cream-dark rounded-full text-sm text-brand-brown hover:bg-brand-brown hover:text-brand-cream hover:border-brand-brown transition-colors tap-soft"
             >
               {cat.label}
             </Link>
@@ -69,12 +85,17 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
 
       {/* Special Offers */}
       {specialOffers.length > 0 && (
-        <section className="px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-brand-brown">{t("specialOffers")}</h2>
-            <Link href={`/${locale}/shop`} className="text-sm text-brand-gold font-medium">{t("viewAll")}</Link>
+        <section className="px-5 pt-10">
+          <div className="flex items-end justify-between mb-5">
+            <div>
+              <p className="eyebrow mb-1">{t("specialOffers")}</p>
+              <h2 className="h-display text-2xl text-brand-brown">Curated Edits</h2>
+            </div>
+            <Link href={`/${locale}/shop`} className="text-xs font-semibold tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40 pb-0.5">
+              {t("viewAll")}
+            </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-5 px-5">
             {specialOffers.map((product) => (
               <div key={product.id} className="flex-shrink-0 w-44">
                 <ProductCard product={product} />
@@ -84,14 +105,24 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
         </section>
       )}
 
+      {/* Hairline */}
+      <div className="px-8 my-10">
+        <div className="hairline-gold" />
+      </div>
+
       {/* Best Sellers */}
       {bestSellers.length > 0 && (
-        <section className="px-4 py-4 pb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-brand-brown">{t("bestSellers")}</h2>
-            <Link href={`/${locale}/shop`} className="text-sm text-brand-gold font-medium">{t("viewAll")}</Link>
+        <section className="px-5 pb-12">
+          <div className="flex items-end justify-between mb-5">
+            <div>
+              <p className="eyebrow mb-1">{t("bestSellers")}</p>
+              <h2 className="h-display text-2xl text-brand-brown">Most Loved</h2>
+            </div>
+            <Link href={`/${locale}/shop`} className="text-xs font-semibold tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40 pb-0.5">
+              {t("viewAll")}
+            </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-6">
             {bestSellers.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

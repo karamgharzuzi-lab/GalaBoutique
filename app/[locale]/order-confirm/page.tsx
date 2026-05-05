@@ -28,51 +28,60 @@ export default function OrderConfirmPage() {
 
   return (
     <StorefrontLayout locale={locale}>
-      <div className="max-w-lg mx-auto px-4 py-10 text-center">
-        {/* Success icon */}
-        <div className="w-20 h-20 mx-auto mb-6 bg-brand-gold/20 rounded-full flex items-center justify-center">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+      <div className="max-w-lg mx-auto px-5 py-12 text-center">
+        {/* Success ornament */}
+        <div className="relative w-20 h-20 mx-auto mb-8">
+          <div className="absolute inset-0 rounded-full border border-brand-gold/40" />
+          <div className="absolute inset-2 rounded-full bg-brand-gold/10 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-brand-brown mb-2">{t("title")}</h1>
-        <p className="text-brand-brown/70 mb-6">{t("subtitle")}</p>
+        <p className="eyebrow mb-2 text-brand-gold/80">Confirmation</p>
+        <h1 className="h-display text-4xl text-brand-brown mb-3">{t("title")}</h1>
+        <p className="text-brand-brown/70 mb-8 text-pretty">{t("subtitle")}</p>
+
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <span className="w-12 h-px bg-brand-gold/50" />
+          <span className="w-1.5 h-1.5 bg-brand-gold rotate-45" />
+          <span className="w-12 h-px bg-brand-gold/50" />
+        </div>
 
         {/* Order ref */}
-        <div className="bg-brand-cream rounded-2xl px-6 py-4 mb-6 inline-block">
-          <p className="text-xs text-brand-brown/50 mb-1">{t("orderRef")}</p>
-          <p className="text-xl font-bold text-brand-brown tracking-widest">{shortId}</p>
+        <div className="mb-8">
+          <p className="eyebrow mb-2">{t("orderRef")}</p>
+          <p className="h-display text-3xl text-brand-brown tracking-widest">{shortId}</p>
         </div>
 
         {/* Contact message */}
-        <div className="bg-white rounded-2xl p-4 mb-6 shadow-card text-sm text-brand-brown/80 leading-relaxed">
+        <div className="bg-white border border-brand-cream-dark rounded-xl p-5 mb-6 text-sm text-brand-brown/80 leading-relaxed">
           {t("contactMessage")}
         </div>
 
         {/* Order summary */}
         {order && !loading && (
-          <div className="bg-white rounded-2xl p-4 shadow-card text-start mb-6">
-            <h2 className="text-sm font-bold text-brand-brown mb-3">{t("orderSummary")}</h2>
+          <div className="bg-white border border-brand-cream-dark rounded-xl p-5 text-start mb-6">
+            <p className="eyebrow mb-3">{t("orderSummary")}</p>
             <div className="space-y-2 mb-3">
               {order.items.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span className="text-brand-brown/70">
+                <div key={i} className="flex justify-between text-sm gap-3">
+                  <span className="text-brand-brown/70 line-clamp-1">
                     {locale === "he" ? item.nameHe : item.nameEn} · {item.size} · {item.color} × {item.qty}
                   </span>
-                  <span className="text-brand-brown font-medium">₪{item.subtotal}</span>
+                  <span className="text-brand-brown font-medium flex-shrink-0">₪{item.subtotal}</span>
                 </div>
               ))}
             </div>
-            <div className="border-t border-brand-cream-dark pt-2 space-y-1">
-              <div className="flex justify-between text-xs text-brand-brown/60">
-                <span>{t("shippingTo")} {tShip(order.shippingRegion as "north" | "center" | "south")}</span>
-                <span>{order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold text-brand-brown">
-                <span>Total</span>
-                <span>₪{order.total.toLocaleString()}</span>
-              </div>
+            <div className="hairline mb-3" />
+            <div className="flex justify-between text-xs text-brand-brown/60 mb-2">
+              <span>{t("shippingTo")} {tShip(order.shippingRegion as "north" | "center" | "south")}</span>
+              <span>{order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}</span>
+            </div>
+            <div className="flex justify-between items-baseline text-base font-bold text-brand-brown">
+              <span>Total</span>
+              <span className="h-display text-2xl">₪{order.total.toLocaleString()}</span>
             </div>
           </div>
         )}

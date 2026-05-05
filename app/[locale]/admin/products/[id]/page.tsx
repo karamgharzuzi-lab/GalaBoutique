@@ -23,8 +23,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   return (
     <AdminLayout locale={locale}>
       <ToastProvider>
-        <div className="p-4 md:p-6 max-w-4xl mx-auto pb-24 md:pb-8">
-          <h1 className="text-2xl font-bold text-brand-brown mb-6">Edit Product</h1>
+        <div className="p-5 md:p-8 max-w-4xl mx-auto pb-24 md:pb-8">
+          <div className="mb-6">
+            <p className="eyebrow mb-1">Catalog</p>
+            <h1 className="h-display text-3xl text-brand-brown">Edit Product</h1>
+          </div>
           {loading ? (
             <div className="flex justify-center py-20">
               <span className="w-8 h-8 border-2 border-brand-brown border-t-transparent rounded-full animate-spin" />

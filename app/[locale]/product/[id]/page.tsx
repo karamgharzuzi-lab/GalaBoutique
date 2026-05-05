@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import StorefrontLayout from "@/components/storefront/StorefrontLayout";
 import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
 import { ProductDetailSkeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -150,7 +149,7 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
       {/* Gallery */}
       <div
         ref={galleryRef}
-        className="relative bg-brand-cream overflow-hidden"
+        className="relative bg-brand-cream-dark/30 overflow-hidden"
         onTouchStart={handleSwipeStart}
         onTouchEnd={handleSwipeEnd}
       >
@@ -180,9 +179,10 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
               <button
                 key={i}
                 onClick={() => setImgIdx(i)}
+                aria-label={`Image ${i + 1}`}
                 className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-all",
-                  i === imgIdx ? "bg-brand-gold w-4" : "bg-white/60"
+                  "h-1.5 rounded-full transition-all",
+                  i === imgIdx ? "bg-brand-gold w-5" : "bg-white/70 w-1.5"
                 )}
               />
             ))}
@@ -192,14 +192,14 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
 
       {/* Thumbnails row */}
       {product.images.length > 1 && (
-        <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 px-5 py-3 overflow-x-auto scrollbar-hide">
           {product.images.map((img, i) => (
             <button
               key={i}
               onClick={() => setImgIdx(i)}
               className={cn(
-                "flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-colors",
-                i === imgIdx ? "border-brand-gold" : "border-transparent"
+                "flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border transition-colors",
+                i === imgIdx ? "border-brand-gold ring-1 ring-brand-gold" : "border-brand-cream-dark"
               )}
             >
               <Image src={img} alt="" width={56} height={56} className="object-cover w-full h-full" />
@@ -209,52 +209,57 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
       )}
 
       {/* Product info */}
-      <div className="px-4 pb-32">
-        {/* Name + category */}
-        <div className="flex items-start justify-between gap-3 py-4">
-          <div>
-            <h1 className="text-xl font-bold text-brand-brown leading-tight">{name}</h1>
-            <Badge className="mt-1 capitalize">{product.category}</Badge>
-          </div>
-          {isOutOfStock && <Badge variant="outOfStock">{tCommon("outOfStock")}</Badge>}
+      <div className="px-5 pb-32">
+        {/* Category eyebrow + name */}
+        <div className="pt-6 pb-4">
+          <p className="eyebrow mb-2">{product.category}</p>
+          <h1 className="h-display text-3xl md:text-4xl text-brand-brown leading-tight text-balance">{name}</h1>
         </div>
 
         {/* Price */}
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-baseline gap-3 mb-6">
           {selectedVariant ? (
             <>
               {selectedVariant.salePrice ? (
                 <>
-                  <span className="text-2xl font-bold text-brand-gold">₪{selectedVariant.salePrice}</span>
+                  <span className="h-display text-3xl text-brand-gold">₪{selectedVariant.salePrice}</span>
                   <span className="text-base text-brand-brown/40 line-through">₪{selectedVariant.price}</span>
-                  <Badge variant="sale">Sale</Badge>
+                  <span className="text-[10px] font-semibold tracking-luxe uppercase text-brand-brown bg-brand-gold/95 px-2 py-1 rounded-sm">Sale</span>
                 </>
               ) : (
-                <span className="text-2xl font-bold text-brand-brown">₪{selectedVariant.price}</span>
+                <span className="h-display text-3xl text-brand-brown">₪{selectedVariant.price}</span>
               )}
             </>
           ) : (
-            <span className="text-xl font-semibold text-brand-brown/60">
+            <span className="h-display text-2xl text-brand-brown/60">
               {product.variants.length > 0
                 ? `₪${Math.min(...product.variants.map((v) => v.salePrice ?? v.price))}`
                 : "—"}
             </span>
           )}
+          {isOutOfStock && (
+            <span className="ms-auto text-[10px] font-semibold tracking-luxe uppercase text-brand-brown bg-brand-cream-dark px-2 py-1 rounded-sm">
+              {tCommon("outOfStock")}
+            </span>
+          )}
         </div>
 
+        <div className="hairline mb-6" />
+
         {/* Color selector */}
-        <div className="mb-5">
-          <p className="text-sm font-semibold text-brand-brown mb-2">{t("selectColor")}</p>
-          <div className="flex gap-2 flex-wrap">
+        <div className="mb-6">
+          <p className="eyebrow mb-3">{t("selectColor")} <span className="text-brand-brown/60 font-medium normal-case tracking-normal">— {selectedColor}</span></p>
+          <div className="flex gap-2.5 flex-wrap">
             {colorOptions.map(([color, hex]) => (
               <button
                 key={color}
                 onClick={() => { setSelectedColor(color); setSelectedSize(""); setQty(1); }}
+                aria-label={color}
                 className={cn(
-                  "w-8 h-8 rounded-full border-2 transition-all",
+                  "w-9 h-9 rounded-full transition-all tap-soft",
                   selectedColor === color
-                    ? "border-brand-brown ring-2 ring-brand-gold ring-offset-1"
-                    : "border-white ring-1 ring-gray-200"
+                    ? "ring-2 ring-brand-brown ring-offset-2 ring-offset-brand-cream"
+                    : "ring-1 ring-brand-brown/15"
                 )}
                 style={{ backgroundColor: hex }}
                 title={color}
@@ -264,9 +269,9 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
         </div>
 
         {/* Size selector */}
-        <div className="mb-5">
-          <p className="text-sm font-semibold text-brand-brown mb-2">{t("selectSize")}</p>
-          <div className="flex gap-2 flex-wrap">
+        <div className="mb-6">
+          <p className="eyebrow mb-3">{t("selectSize")}</p>
+          <div className="grid grid-cols-6 gap-2">
             {SIZES.map((size) => {
               const v = sizeVariant(size);
               const available = v && v.quantity > 0;
@@ -276,11 +281,11 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
                   disabled={!available}
                   onClick={() => { setSelectedSize(size); setQty(1); }}
                   className={cn(
-                    "h-10 min-w-[44px] px-3 rounded-xl border-2 text-sm font-medium transition-all",
+                    "h-11 rounded-md border text-sm font-medium transition-all tap-soft",
                     selectedSize === size
                       ? "border-brand-brown bg-brand-brown text-brand-cream"
                       : available
-                      ? "border-brand-cream-dark text-brand-brown hover:border-brand-brown/40"
+                      ? "border-brand-brown/20 text-brand-brown hover:border-brand-brown"
                       : "border-brand-cream-dark text-brand-brown/30 line-through cursor-not-allowed"
                   )}
                 >
@@ -293,35 +298,42 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
 
         {/* Quantity */}
         {selectedVariant && selectedVariant.quantity > 0 && (
-          <div className="mb-5">
-            <p className="text-sm font-semibold text-brand-brown mb-2">{t("quantity")}</p>
-            <div className="flex items-center gap-3">
+          <div className="mb-6">
+            <p className="eyebrow mb-3">{t("quantity")}</p>
+            <div className="inline-flex items-center border border-brand-brown/20 rounded-full">
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-9 h-9 rounded-full border border-brand-cream-dark text-brand-brown font-bold hover:bg-brand-cream transition-colors flex items-center justify-center"
+                disabled={qty <= 1}
+                aria-label="Decrease"
+                className="w-10 h-10 rounded-full text-brand-brown text-lg font-light disabled:opacity-30 hover:bg-brand-brown/5 transition-colors flex items-center justify-center"
               >−</button>
-              <span className="text-base font-semibold w-6 text-center text-brand-brown">{qty}</span>
+              <span className="text-base font-semibold w-10 text-center text-brand-brown">{qty}</span>
               <button
                 onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-                className="w-9 h-9 rounded-full border border-brand-cream-dark text-brand-brown font-bold hover:bg-brand-cream transition-colors flex items-center justify-center"
+                disabled={qty >= maxQty}
+                aria-label="Increase"
+                className="w-10 h-10 rounded-full text-brand-brown text-lg font-light disabled:opacity-30 hover:bg-brand-brown/5 transition-colors flex items-center justify-center"
               >+</button>
             </div>
+            {selectedVariant.quantity <= 3 && (
+              <p className="text-xs text-brand-gold font-medium mt-2">Only {selectedVariant.quantity} left</p>
+            )}
           </div>
         )}
 
         {/* Shipping region */}
-        <div className="mb-5">
-          <p className="text-sm font-semibold text-brand-brown mb-2">{t("shippingRegion")}</p>
+        <div className="mb-6">
+          <p className="eyebrow mb-3">{t("shippingRegion")}</p>
           <div className="grid grid-cols-3 gap-2">
             {REGIONS.map((r) => (
               <button
                 key={r}
                 onClick={() => setRegion(r)}
                 className={cn(
-                  "py-2 px-3 rounded-xl border-2 text-xs font-medium text-center transition-all",
+                  "py-2.5 px-3 rounded-md border text-xs font-medium text-center transition-all tap-soft",
                   region === r
                     ? "border-brand-brown bg-brand-brown text-brand-cream"
-                    : "border-brand-cream-dark text-brand-brown hover:border-brand-brown/30"
+                    : "border-brand-brown/20 text-brand-brown hover:border-brand-brown/50"
                 )}
               >
                 {regionLabels[r]}
@@ -332,10 +344,10 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
 
         {/* Live total */}
         {total !== null && (
-          <div className="bg-brand-cream rounded-2xl p-4 mb-6">
+          <div className="bg-white border border-brand-cream-dark rounded-xl p-4 mb-8">
             <div className="flex justify-between text-sm text-brand-brown/70 mb-1">
-              <span>{t("quantity")}</span>
-              <span>×{qty}</span>
+              <span>{t("quantity")} ×{qty}</span>
+              <span>₪{(unitPrice! * qty).toLocaleString()}</span>
             </div>
             {shippingCost !== null && (
               <div className="flex justify-between text-sm text-brand-brown/70 mb-2">
@@ -347,32 +359,38 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
                 )}
               </div>
             )}
-            <div className="flex justify-between text-base font-bold text-brand-brown border-t border-brand-cream-dark pt-2">
+            <div className="hairline mb-2" />
+            <div className="flex justify-between text-base font-bold text-brand-brown">
               <span>{t("liveTotal")}</span>
-              <span>₪{total.toLocaleString()}</span>
+              <span className="h-display text-xl">₪{total.toLocaleString()}</span>
             </div>
           </div>
         )}
 
         {/* Description */}
         {description && (
-          <div>
-            <p className="text-sm font-semibold text-brand-brown mb-2">{t("description")}</p>
-            <p className="text-sm text-brand-brown/70 leading-relaxed">{description}</p>
-          </div>
+          <>
+            <div className="hairline mb-5" />
+            <div>
+              <p className="eyebrow mb-3">{t("description")}</p>
+              <p className="text-sm text-brand-brown/75 leading-relaxed text-pretty">{description}</p>
+            </div>
+          </>
         )}
       </div>
 
       {/* Sticky Add to Cart */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-brand-cream-dark p-4 pb-safe md:relative md:border-0 md:bg-transparent md:px-4 md:pb-8">
-        <Button
-          fullWidth
-          size="lg"
-          disabled={!canAddToCart}
-          onClick={handleAddToCart}
-        >
-          {isOutOfStock ? tCommon("outOfStock") : t("addToCart")}
-        </Button>
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-30 bg-brand-cream/95 backdrop-blur-md border-t border-brand-cream-dark p-3 pb-safe md:relative md:border-0 md:bg-transparent md:px-5 md:pb-8">
+        <div className="max-w-2xl mx-auto">
+          <Button
+            fullWidth
+            size="lg"
+            disabled={!canAddToCart}
+            onClick={handleAddToCart}
+          >
+            {isOutOfStock ? tCommon("outOfStock") : t("addToCart")}
+          </Button>
+        </div>
       </div>
     </div>
   );

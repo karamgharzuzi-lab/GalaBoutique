@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -29,10 +29,68 @@ const DEFAULT_COLORS: ColorDef[] = [
 
 type VariantKey = `${string}__${string}`;
 
+/* ─────────────────────────────────────── */
+
+function Section({
+  title,
+  subtitle,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="bg-white border border-brand-cream-dark rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-brand-cream/30 transition-colors text-start"
+      >
+        <div>
+          <p className="eyebrow mb-0.5">Section</p>
+          <h2 className="h-display text-lg text-brand-brown leading-tight">{title}</h2>
+          {subtitle && <p className="text-xs text-brand-brown/50 mt-0.5">{subtitle}</p>}
+        </div>
+        <svg
+          width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+          className={cn("text-brand-brown/50 transition-transform flex-shrink-0", open && "rotate-180")}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="border-t border-brand-cream-dark p-5">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return (
+    <label className="block text-[11px] font-semibold tracking-wide uppercase text-brand-brown/70 mb-1.5">
+      {children}
+    </label>
+  );
+}
+
+const inputBase = "w-full border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold";
+
+/* ─────────────────────────────────────── */
+
 export default function ProductForm({ initial }: ProductFormProps) {
   const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
+
+  // Section open state
+  const [openSection, setOpenSection] = useState<"basics" | "media" | "variants">("basics");
 
   // Basic fields
   const [nameEn, setNameEn] = useState(initial?.name.en ?? "");
@@ -170,7 +228,11 @@ export default function ProductForm({ initial }: ProductFormProps) {
   }
 
   async function handleSave() {
-    if (!nameEn.trim()) { toast("English name is required", "error"); return; }
+    if (!nameEn.trim()) {
+      toast("English name is required", "error");
+      setOpenSection("basics");
+      return;
+    }
     setSaving(true);
 
     const builtVariants: ProductVariant[] = [];
@@ -203,10 +265,10 @@ export default function ProductForm({ initial }: ProductFormProps) {
     try {
       if (initial) {
         await updateProduct(initial.id, data);
-        toast("Product saved!");
+        toast("Product saved");
       } else {
         await createProduct(data);
-        toast("Product created!");
+        toast("Product created");
         router.push(`/${locale}/admin/products`);
       }
     } catch {
@@ -215,147 +277,150 @@ export default function ProductForm({ initial }: ProductFormProps) {
     setSaving(false);
   }
 
+  const variantCount = Array.from(variants.values()).filter((v) => v.price && parseFloat(v.price) > 0).length;
+
   return (
-    <div className="space-y-6">
-      {/* Names */}
-      <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
-        <h2 className="text-sm font-bold text-brand-brown">Product Name</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-3">
+      {/* Section 1: Basics */}
+      <Section
+        title="Basics"
+        subtitle={`${nameEn || "Untitled"} · ${category}`}
+        open={openSection === "basics"}
+        onToggle={() => setOpenSection(openSection === "basics" ? "media" : "basics")}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-xs font-semibold text-brand-brown/70 mb-1">English</label>
-            <input value={nameEn} onChange={(e) => setNameEn(e.target.value)}
-              className="w-full border border-brand-cream-dark rounded-xl px-3 py-2 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold"
-            />
+            <FieldLabel>Name (English)</FieldLabel>
+            <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={inputBase} />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-brand-brown/70 mb-1">Hebrew</label>
-            <input value={nameHe} onChange={(e) => setNameHe(e.target.value)} dir="rtl"
-              className="w-full border border-brand-cream-dark rounded-xl px-3 py-2 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
-      <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
-        <h2 className="text-sm font-bold text-brand-brown">Description</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-brand-brown/70 mb-1">English</label>
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3}
-              className="w-full border border-brand-cream-dark rounded-xl px-3 py-2 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold resize-none"
-            />
+            <FieldLabel>Name (Hebrew)</FieldLabel>
+            <input value={nameHe} onChange={(e) => setNameHe(e.target.value)} dir="rtl" className={inputBase} />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-brand-brown/70 mb-1">Hebrew</label>
-            <textarea value={descHe} onChange={(e) => setDescHe(e.target.value)} rows={3} dir="rtl"
-              className="w-full border border-brand-cream-dark rounded-xl px-3 py-2 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold resize-none"
-            />
+            <FieldLabel>Description (English)</FieldLabel>
+            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} className={cn(inputBase, "resize-none")} />
+          </div>
+          <div>
+            <FieldLabel>Description (Hebrew)</FieldLabel>
+            <textarea value={descHe} onChange={(e) => setDescHe(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
           </div>
         </div>
-      </div>
 
-      {/* Category + flags */}
-      <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
-        <h2 className="text-sm font-bold text-brand-brown">Category & Flags</h2>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="hairline mb-4" />
+
+        <div className="flex flex-wrap items-center gap-5">
           <div>
-            <label className="block text-xs font-semibold text-brand-brown/70 mb-1">Category</label>
+            <FieldLabel>Category</FieldLabel>
             <select value={category} onChange={(e) => setCategory(e.target.value as Product["category"])}
-              className="border border-brand-cream-dark rounded-xl px-3 py-2 text-sm bg-brand-cream text-brand-brown"
+              className="border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm bg-brand-cream text-brand-brown capitalize"
             >
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={isBestSeller} onChange={(e) => setIsBestSeller(e.target.checked)} className="rounded" />
-            <span className="text-sm font-medium text-brand-brown">Best Seller</span>
+          <label className="flex items-center gap-2 cursor-pointer mt-5">
+            <input type="checkbox" checked={isBestSeller} onChange={(e) => setIsBestSeller(e.target.checked)} className="rounded accent-brand-gold" />
+            <span className="text-sm text-brand-brown">Best Seller</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={isSpecialOffer} onChange={(e) => setIsSpecialOffer(e.target.checked)} className="rounded" />
-            <span className="text-sm font-medium text-brand-brown">Special Offer</span>
+          <label className="flex items-center gap-2 cursor-pointer mt-5">
+            <input type="checkbox" checked={isSpecialOffer} onChange={(e) => setIsSpecialOffer(e.target.checked)} className="rounded accent-brand-gold" />
+            <span className="text-sm text-brand-brown">Special Offer</span>
           </label>
         </div>
-      </div>
+      </Section>
 
-      {/* Images */}
-      <div className="bg-white rounded-2xl p-5 shadow-card space-y-3">
-        <h2 className="text-sm font-bold text-brand-brown">Images</h2>
+      {/* Section 2: Media */}
+      <Section
+        title="Media"
+        subtitle={`${images.length} image${images.length === 1 ? "" : "s"}`}
+        open={openSection === "media"}
+        onToggle={() => setOpenSection(openSection === "media" ? "variants" : "media")}
+      >
         <div
           onClick={() => fileRef.current?.click()}
           onDrop={(e) => { e.preventDefault(); handleImageUpload(e.dataTransfer.files); }}
           onDragOver={(e) => e.preventDefault()}
-          className="border-2 border-dashed border-brand-cream-dark rounded-xl p-6 text-center cursor-pointer hover:border-brand-brown/30 transition-colors"
+          className="border border-dashed border-brand-cream-dark rounded-md p-8 text-center cursor-pointer hover:border-brand-gold/50 hover:bg-brand-cream/30 transition-colors"
         >
-          <p className="text-sm text-brand-brown/60">Drag & drop images here, or click to select</p>
-          <p className="text-xs text-brand-brown/40 mt-1">First image = primary photo</p>
+          <p className="text-sm text-brand-brown/70">Drop images here, or click to select</p>
+          <p className="text-xs text-brand-brown/40 mt-1">First image is the primary photo</p>
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
           onChange={(e) => handleImageUpload(e.target.files)}
         />
-        {uploading && <p className="text-xs text-brand-brown/60 animate-pulse">Uploading...</p>}
+        {uploading && <p className="text-xs text-brand-brown/60 animate-pulse mt-2">Uploading...</p>}
         {images.length > 0 && (
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3 flex-wrap mt-4">
             {images.map((url, i) => (
               <div key={url} className="relative group">
-                <Image src={url} alt="" width={80} height={80}
-                  className={cn("rounded-xl object-cover w-20 h-20", i === 0 && "ring-2 ring-brand-gold")}
+                <Image src={url} alt="" width={88} height={88}
+                  className={cn("rounded-md object-cover w-22 h-22", i === 0 && "ring-2 ring-brand-gold")}
                 />
                 {i > 0 && (
                   <button onClick={() => moveImageLeft(i)}
-                    className="absolute top-0 left-0 bg-brand-gold text-brand-brown w-5 h-5 rounded-br-lg text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-0 left-0 bg-brand-gold text-brand-brown w-5 h-5 rounded-br-md text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Move left"
                   >←</button>
                 )}
                 <button onClick={() => removeImage(url)}
-                  className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 rounded-bl-lg text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 rounded-bl-md text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Remove"
                 >×</button>
-                {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] text-center bg-brand-gold/90 text-brand-brown rounded-b-xl py-0.5 font-bold">PRIMARY</span>}
+                {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] text-center bg-brand-gold/95 text-brand-brown rounded-b-md py-0.5 font-bold tracking-luxe uppercase">Primary</span>}
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Section>
 
-      {/* Colors */}
-      <div className="bg-white rounded-2xl p-5 shadow-card space-y-3">
-        <h2 className="text-sm font-bold text-brand-brown">Colors</h2>
-        <div className="flex flex-wrap gap-2">
-          {colors.map((c) => (
-            <div key={c.name} className="flex items-center gap-1.5 bg-brand-cream rounded-xl px-3 py-1.5">
-              <span className="w-4 h-4 rounded-full border border-white ring-1 ring-gray-200" style={{ backgroundColor: c.hex }} />
-              <span className="text-sm text-brand-brown">{c.name}</span>
-              <button onClick={() => removeColor(c.name)} className="text-brand-brown/40 hover:text-red-500 text-sm ml-0.5">×</button>
-            </div>
-          ))}
+      {/* Section 3: Variants */}
+      <Section
+        title="Variants & Pricing"
+        subtitle={`${colors.length} color${colors.length === 1 ? "" : "s"} · ${variantCount} variant${variantCount === 1 ? "" : "s"} priced`}
+        open={openSection === "variants"}
+        onToggle={() => setOpenSection(openSection === "variants" ? "basics" : "variants")}
+      >
+        {/* Colors row */}
+        <div className="mb-4">
+          <FieldLabel>Colors</FieldLabel>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {colors.map((c) => (
+              <div key={c.name} className="flex items-center gap-1.5 bg-brand-cream rounded-md px-3 py-1.5 border border-brand-cream-dark">
+                <span className="w-3.5 h-3.5 rounded-full ring-1 ring-brand-brown/15" style={{ backgroundColor: c.hex }} />
+                <span className="text-sm text-brand-brown">{c.name}</span>
+                <button onClick={() => removeColor(c.name)} className="text-brand-brown/40 hover:text-red-500 text-base ms-1 leading-none" aria-label="Remove color">×</button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              type="text" placeholder="Color name (optional)" value={newColorName}
+              onChange={(e) => setNewColorName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addColor())}
+              className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm text-brand-brown bg-brand-cream w-44 focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
+            />
+            <input type="color" value={newColorHex} onChange={(e) => setNewColorHex(e.target.value)}
+              className="w-10 h-10 border border-brand-cream-dark rounded-md cursor-pointer"
+              aria-label="Pick color"
+            />
+            <Button variant="outline" size="sm" onClick={addColor}>Add Color</Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="text" placeholder="Color name (optional)" value={newColorName}
-            onChange={(e) => setNewColorName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addColor()}
-            className="border border-brand-cream-dark rounded-xl px-3 py-2 text-sm text-brand-brown bg-brand-cream w-44 focus:outline-none focus:ring-2 focus:ring-brand-gold"
-          />
-          <input type="color" value={newColorHex} onChange={(e) => setNewColorHex(e.target.value)}
-            className="w-10 h-9 border border-brand-cream-dark rounded-xl cursor-pointer"
-          />
-          <Button variant="outline" size="sm" onClick={addColor}>Add Color</Button>
-        </div>
-        <p className="text-[11px] text-brand-brown/40">Pick a color and click Add Color. Name is optional — leave blank to use the hex value.</p>
-      </div>
 
-      {/* Variants table */}
-      <div className="bg-white rounded-2xl p-5 shadow-card">
-        <h2 className="text-sm font-bold text-brand-brown mb-4">Variants (Size × Color)</h2>
-        <div className="overflow-x-auto">
+        <div className="hairline mb-4" />
+
+        {/* Variants table */}
+        <FieldLabel>Variants — Size × Color</FieldLabel>
+        <div className="overflow-x-auto -mx-1 px-1">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-brand-cream-dark">
-                <th className="text-start py-2 pr-3 font-semibold text-brand-brown/70 w-14">Size</th>
+                <th className="text-start py-2 pr-3 eyebrow w-14">Size</th>
                 {colors.map((c) => (
-                  <th key={c.name} className="text-center py-2 px-2 font-semibold text-brand-brown/70 min-w-[120px]">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: c.hex }} />
-                      {c.name}
+                  <th key={c.name} className="text-center py-2 px-2 eyebrow min-w-[140px]">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-full ring-1 ring-brand-brown/15" style={{ backgroundColor: c.hex }} />
+                      <span className="normal-case tracking-normal">{c.name}</span>
                     </span>
                   </th>
                 ))}
@@ -371,7 +436,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
                     return (
                       <td key={color.name} className={cn(
                         "py-2 px-2",
-                        qtyNum === 0 && v.price ? "bg-red-50" : ""
+                        qtyNum === 0 && v.price ? "bg-red-50/50" : ""
                       )}>
                         <div className="flex flex-col gap-1">
                           <div className="flex gap-1">
@@ -379,20 +444,20 @@ export default function ProductForm({ initial }: ProductFormProps) {
                               type="number" min="0" placeholder="Qty"
                               value={v.qty}
                               onChange={(e) => setVariantField(size, color.name, "qty", e.target.value)}
-                              className="w-14 border border-brand-cream-dark rounded-lg px-1.5 py-1 text-xs text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                              className="w-14 border border-brand-cream-dark rounded-md px-1.5 py-1 text-xs text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
                             />
                             <input
-                              type="number" min="0" placeholder="₪ Price"
+                              type="number" min="0" placeholder="₪"
                               value={v.price}
                               onChange={(e) => setVariantField(size, color.name, "price", e.target.value)}
-                              className="w-16 border border-brand-cream-dark rounded-lg px-1.5 py-1 text-xs text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                              className="w-16 border border-brand-cream-dark rounded-md px-1.5 py-1 text-xs text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
                             />
                           </div>
                           <input
                             type="number" min="0" placeholder="₪ Sale (opt)"
                             value={v.salePrice}
                             onChange={(e) => setVariantField(size, color.name, "salePrice", e.target.value)}
-                            className="w-full border border-brand-cream-dark rounded-lg px-1.5 py-1 text-xs text-brand-gold bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                            className="w-full border border-brand-cream-dark rounded-md px-1.5 py-1 text-xs text-brand-gold bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold"
                           />
                         </div>
                       </td>
@@ -403,10 +468,10 @@ export default function ProductForm({ initial }: ProductFormProps) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Section>
 
-      {/* Save */}
-      <div className="flex justify-end gap-3 pb-8">
+      {/* Save bar — sticky */}
+      <div className="sticky bottom-16 md:bottom-0 z-20 bg-brand-cream/95 backdrop-blur-md py-4 -mx-5 px-5 border-t border-brand-cream-dark flex justify-end gap-3">
         <Button variant="outline" onClick={() => router.push(`/${locale}/admin/products`)}>
           Cancel
         </Button>

@@ -14,11 +14,15 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background-color: #FAF7F2;
   color: #3B1F0F;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* RTL support: flip horizontal padding/margin utilities */
@@ -34,7 +38,63 @@ body {
 .snap-x { scroll-snap-type: x mandatory; }
 .snap-start { scroll-snap-align: start; }
 
-@layer utilities {
-  .text-balance { text-wrap: balance; }
+/* iOS safe-area helpers */
+.safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
+.pb-safe     { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+.pt-safe     { padding-top: env(safe-area-inset-top); }
+
+@layer components {
+  /* Display heading — serif, used on hero, page titles, PDP product name */
+  .h-display {
+    font-family: var(--font-cormorant), Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* Small uppercase eyebrow label */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(59, 31, 15, 0.55);
+  }
+
+  /* Gold hairline divider */
+  .hairline-gold {
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(201, 168, 76, 0.35) 25%,
+      rgba(201, 168, 76, 0.55) 50%,
+      rgba(201, 168, 76, 0.35) 75%,
+      transparent 100%);
+  }
+
+  /* Subtle cream hairline */
+  .hairline {
+    height: 1px;
+    background-color: #EDE8E0;
+  }
+
+  /* Gold ornament dot */
+  .ornament-dot::before,
+  .ornament-dot::after {
+    content: "";
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: rgba(201, 168, 76, 0.5);
+    vertical-align: middle;
+    margin: 0 0.6rem;
+  }
 }
 
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  /* Smooth tap state for mobile buttons */
+  .tap-soft { transition: transform 120ms ease, opacity 120ms ease; }
+  .tap-soft:active { transform: scale(0.97); opacity: 0.92; }
+}

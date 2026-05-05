@@ -20,9 +20,9 @@ const STATUS_PROGRESSION: Record<Order["status"], Order["status"] | null> = {
 };
 
 const STATUS_LABELS: Record<Order["status"], string> = {
-  pending:   "Mark as Confirmed",
-  confirmed: "Mark as Shipped",
-  shipped:   "Mark as Delivered",
+  pending:   "Confirm",
+  confirmed: "Mark Shipped",
+  shipped:   "Mark Delivered",
   delivered: "Delivered",
   failed:    "Failed",
 };
@@ -39,6 +39,7 @@ function OrdersInner() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">("all");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -96,29 +97,32 @@ function OrdersInner() {
   }
 
   const statusOptions: Array<Order["status"] | "all"> = ["all", "pending", "confirmed", "shipped", "delivered", "failed"];
-  const badgeVariant = (s: Order["status"]): "pending" | "confirmed" | "shipped" | "delivered" | "failed" => s as never;
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-8">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-brand-brown">Orders</h1>
+    <div className="p-5 md:p-8 max-w-5xl mx-auto pb-24 md:pb-8">
+      <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <p className="eyebrow mb-1">Sales</p>
+          <h1 className="h-display text-3xl text-brand-brown">Orders</h1>
+        </div>
         <Button variant="outline" size="sm" onClick={exportCSV}>Export CSV</Button>
       </div>
 
-      {/* Status filter */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-6">
+      {/* Status filter — pill-style under tab bar */}
+      <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 mb-5 border-b border-brand-cream-dark">
         {statusOptions.map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
             className={cn(
-              "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-colors",
-              statusFilter === s
-                ? "bg-brand-brown text-brand-cream"
-                : "bg-white border border-brand-cream-dark text-brand-brown hover:bg-brand-brown/5"
+              "flex-shrink-0 px-4 py-2.5 text-xs font-semibold tracking-wide uppercase transition-colors relative",
+              statusFilter === s ? "text-brand-brown" : "text-brand-brown/45 hover:text-brand-brown/80"
             )}
           >
             {s === "all" ? "All" : s}
+            {statusFilter === s && (
+              <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-brand-gold rounded-full" />
+            )}
           </button>
         ))}
       </div>
@@ -126,83 +130,104 @@ function OrdersInner() {
       {/* Orders list */}
       {loading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-48 w-full" />)}
+          {[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full" />)}
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16 text-brand-brown/40">
-          <p className="text-lg font-semibold">No orders found</p>
+        <div className="text-center py-16">
+          <p className="h-display text-2xl text-brand-brown/50">No orders</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {orders.map((order) => {
             const nextStatus = STATUS_PROGRESSION[order.status];
+            const expanded = expandedId === order.id;
             return (
-              <div key={order.id} className="bg-white rounded-2xl shadow-card p-4 space-y-3">
-                {/* Header row */}
-                <div className="flex items-start justify-between flex-wrap gap-2">
-                  <div>
-                    <p className="font-bold text-brand-brown text-sm">#{order.id.slice(0,8).toUpperCase()}</p>
-                    <p className="text-xs text-brand-brown/50">{formatDate(order.createdAt)}</p>
-                  </div>
-                  <Badge variant={badgeVariant(order.status)}>{order.status}</Badge>
-                </div>
-
-                {/* Customer */}
-                <div className="bg-brand-cream rounded-xl p-3 text-sm space-y-1">
-                  <p className="font-semibold text-brand-brown">{order.customer.name}</p>
-                  <a href={`tel:${order.customer.phone}`} className="text-brand-gold font-medium">{order.customer.phone}</a>
-                  <p className="text-brand-brown/70">{order.customer.address}</p>
-                  {order.customer.notes && <p className="text-brand-brown/50 italic">&ldquo;{order.customer.notes}&rdquo;</p>}
-                </div>
-
-                {/* Items */}
-                <div className="space-y-1.5">
-                  {order.items.map((item, i) => (
-                    <div key={i} className="flex justify-between items-center text-sm">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-white ring-1 ring-gray-200 flex-shrink-0"
-                          style={{ backgroundColor: item.colorHex }}
-                        />
-                        <span className="text-brand-brown/80">{item.nameEn} · {item.size} · {item.color} × {item.qty}</span>
-                      </div>
-                      <span className="font-semibold text-brand-brown flex-shrink-0">₪{item.subtotal.toLocaleString()}</span>
+              <div key={order.id} className="bg-white border border-brand-cream-dark rounded-xl overflow-hidden">
+                {/* Compact row — always visible */}
+                <button
+                  onClick={() => setExpandedId(expanded ? null : order.id)}
+                  className="w-full p-4 flex items-center justify-between gap-3 text-start hover:bg-brand-cream/30 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-semibold text-brand-brown text-sm">{order.customer.name}</span>
+                      <Badge variant={order.status}>{order.status}</Badge>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-[11px] text-brand-brown/50">
+                      #{order.id.slice(0,6).toUpperCase()} · {formatDate(order.createdAt)} · {order.items.length} item{order.items.length > 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="h-display text-lg text-brand-brown leading-none">₪{order.total.toLocaleString()}</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                       className={cn("text-brand-brown/40 transition-transform flex-shrink-0", expanded && "rotate-180")}>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
 
-                {/* Totals */}
-                <div className="border-t border-brand-cream-dark pt-2 flex justify-between text-sm">
-                  <span className="text-brand-brown/60">
-                    Shipping ({order.shippingRegion}) — {order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}
-                  </span>
-                  <span className="font-bold text-brand-brown">₪{order.total.toLocaleString()}</span>
-                </div>
+                {/* Expanded detail */}
+                {expanded && (
+                  <div className="border-t border-brand-cream-dark p-4 space-y-3 bg-brand-cream/20">
+                    {/* Customer */}
+                    <div className="text-sm space-y-0.5">
+                      <a href={`tel:${order.customer.phone}`} className="text-brand-gold font-medium block">
+                        {order.customer.phone}
+                      </a>
+                      <p className="text-brand-brown/70">{order.customer.address}</p>
+                      {order.customer.notes && <p className="text-brand-brown/50 italic">&ldquo;{order.customer.notes}&rdquo;</p>}
+                    </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 flex-wrap">
-                  {nextStatus && (
-                    <Button
-                      size="sm"
-                      loading={updating === order.id}
-                      onClick={() => advanceStatus(order)}
-                    >
-                      {STATUS_LABELS[order.status]}
-                    </Button>
-                  )}
-                  <a
-                    href={buildWhatsApp(order)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.84L0 24l6.337-1.496A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.762.888.924-3.67-.237-.376A9.818 9.818 0 1112 21.818z" />
-                    </svg>
-                    WhatsApp
-                  </a>
-                </div>
+                    {/* Items */}
+                    <div className="space-y-1.5">
+                      {order.items.map((item, i) => (
+                        <div key={i} className="flex justify-between items-center text-sm">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="w-3.5 h-3.5 rounded-full ring-1 ring-brand-brown/15 flex-shrink-0"
+                              style={{ backgroundColor: item.colorHex }}
+                            />
+                            <span className="text-brand-brown/80 truncate">{item.nameEn} · {item.size} · {item.color} × {item.qty}</span>
+                          </div>
+                          <span className="font-medium text-brand-brown flex-shrink-0">₪{item.subtotal.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Shipping line */}
+                    <div className="hairline" />
+                    <div className="flex justify-between text-xs text-brand-brown/60">
+                      <span>Shipping ({order.shippingRegion})</span>
+                      <span>{order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 flex-wrap pt-2">
+                      {nextStatus && (
+                        <Button
+                          size="sm"
+                          loading={updating === order.id}
+                          onClick={(e) => { e.stopPropagation(); advanceStatus(order); }}
+                        >
+                          {STATUS_LABELS[order.status]}
+                        </Button>
+                      )}
+                      <a
+                        href={buildWhatsApp(order)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 h-9 px-4 bg-green-600 text-white rounded-md text-[11px] font-semibold tracking-luxe uppercase hover:bg-green-700 transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.84L0 24l6.337-1.496A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.762.888.924-3.67-.237-.376A9.818 9.818 0 1112 21.818z" />
+                        </svg>
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

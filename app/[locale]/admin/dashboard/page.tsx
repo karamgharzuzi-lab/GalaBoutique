@@ -12,6 +12,7 @@ import { requestAndSaveFCMToken } from "@/lib/fcm";
 import type { Order, Product } from "@/lib/types";
 
 interface LowStockItem {
+  productId: string;
   productName: string;
   size: string;
   color: string;
@@ -24,36 +25,30 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<{ count: number; revenue: number } | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [lowStock, setLowStock] = useState<LowStockItem[]>([]);
-  const [outOfStockCount, setOutOfStockCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Request FCM permission on dashboard load
     requestAndSaveFCMToken().catch(() => {});
 
     async function load() {
       const [todayStats, { orders }, products] = await Promise.all([
         getTodayStats(),
-        getOrders({ pageSize: 10 }),
+        getOrders({ pageSize: 8 }),
         getAllProducts(),
       ]);
 
       setStats(todayStats);
       setRecentOrders(orders);
 
-      // Compute low stock
       const ls: LowStockItem[] = [];
-      let oos = 0;
       products.forEach((p: Product) => {
         p.variants.forEach((v) => {
-          if (v.quantity === 0) oos++;
-          else if (v.quantity < 3) {
-            ls.push({ productName: p.name.en, size: v.size, color: v.color, qty: v.quantity });
+          if (v.quantity > 0 && v.quantity < 3) {
+            ls.push({ productId: p.id, productName: p.name.en, size: v.size, color: v.color, qty: v.quantity });
           }
         });
       });
       setLowStock(ls);
-      setOutOfStockCount(oos);
       setLoading(false);
     }
 
@@ -63,113 +58,124 @@ export default function DashboardPage() {
   const pendingCount = recentOrders.filter((o) => o.status === "pending").length;
 
   const statusBadge = (status: Order["status"]) => {
-    const map: Record<Order["status"], "pending" | "confirmed" | "shipped" | "delivered" | "failed"> = {
-      pending:   "pending",
-      confirmed: "confirmed",
-      shipped:   "shipped",
-      delivered: "delivered",
-      failed:    "failed",
-    };
     const labels: Record<Order["status"], string> = {
       pending: "Pending", confirmed: "Confirmed",
       shipped: "Shipped", delivered: "Delivered", failed: "Failed",
     };
-    return <Badge variant={map[status]}>{labels[status]}</Badge>;
+    return <Badge variant={status}>{labels[status]}</Badge>;
   };
 
   return (
     <AdminLayout locale={locale}>
-      <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 pb-24 md:pb-8">
-        <h1 className="text-2xl font-bold text-brand-brown">Dashboard</h1>
+      <div className="p-5 md:p-8 max-w-5xl mx-auto space-y-6 pb-24 md:pb-8">
+        <div>
+          <p className="eyebrow mb-1">Overview</p>
+          <h1 className="h-display text-3xl text-brand-brown">Dashboard</h1>
+        </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* 3 key stat cards */}
+        <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today's Orders", value: loading ? "—" : stats?.count ?? 0, sub: "orders" },
-            { label: "Today's Revenue", value: loading ? "—" : `₪${(stats?.revenue ?? 0).toLocaleString()}`, sub: "" },
-            { label: "Low Stock", value: loading ? "—" : lowStock.length, sub: "variants" },
-            { label: "Out of Stock", value: loading ? "—" : outOfStockCount, sub: "variants" },
+            { label: "Today's Orders",  value: loading ? "—" : stats?.count ?? 0,                                      sub: stats?.revenue ? `₪${stats.revenue.toLocaleString()}` : "" },
+            { label: "Pending",         value: loading ? "—" : pendingCount,                                            sub: "to confirm" },
+            { label: "Low Stock",       value: loading ? "—" : lowStock.length,                                         sub: "variants" },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-2xl p-4 shadow-card">
-              <p className="text-xs text-brand-brown/50 font-medium">{s.label}</p>
+            <div key={s.label} className="bg-white border border-brand-cream-dark rounded-xl p-4">
+              <p className="eyebrow mb-2">{s.label}</p>
               {loading ? (
-                <Skeleton className="h-7 w-16 mt-1" />
+                <Skeleton className="h-8 w-16" />
               ) : (
-                <p className="text-2xl font-bold text-brand-brown mt-0.5">{s.value}</p>
+                <p className="h-display text-3xl text-brand-brown leading-none">{s.value}</p>
               )}
-              {s.sub && <p className="text-xs text-brand-brown/40 mt-0.5">{s.sub}</p>}
+              {s.sub && <p className="text-[11px] text-brand-brown/45 mt-1.5">{s.sub}</p>}
             </div>
           ))}
         </div>
 
         {/* Quick actions */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <Link
             href={`/${locale}/admin/products/new`}
-            className="flex items-center gap-2 bg-brand-brown text-brand-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-brand-brown-light transition-colors"
+            className="inline-flex items-center bg-brand-brown text-brand-cream px-5 py-2.5 rounded-md text-xs font-semibold tracking-luxe uppercase hover:bg-brand-brown-light transition-colors tap-soft"
           >
-            + Add Product
+            + New Product
           </Link>
           <Link
             href={`/${locale}/admin/orders`}
-            className="relative flex items-center gap-2 border-2 border-brand-brown text-brand-brown px-4 py-2 rounded-xl text-sm font-semibold hover:bg-brand-brown/5 transition-colors"
+            className="relative inline-flex items-center border border-brand-brown text-brand-brown px-5 py-2.5 rounded-md text-xs font-semibold tracking-luxe uppercase hover:bg-brand-brown/5 transition-colors tap-soft"
           >
-            View All Orders
+            All Orders
             {pendingCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-brand-gold text-brand-brown text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="ms-2 min-w-[18px] h-[18px] px-1 bg-brand-gold text-brand-brown text-[10px] font-bold rounded-full flex items-center justify-center tracking-normal">
                 {pendingCount}
               </span>
             )}
           </Link>
-          <Link
-            href={`/${locale}/admin/inventory`}
-            className="flex items-center gap-2 border-2 border-brand-brown text-brand-brown px-4 py-2 rounded-xl text-sm font-semibold hover:bg-brand-brown/5 transition-colors"
-          >
-            Update Inventory
-          </Link>
         </div>
 
-        {/* Low stock alerts */}
-        {lowStock.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-card">
-            <h2 className="text-sm font-bold text-brand-brown mb-3">Low Stock Alerts</h2>
-            <div className="space-y-2">
-              {lowStock.slice(0, 8).map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
-                  <span className="text-brand-brown/80">{item.productName} · {item.size} · {item.color}</span>
-                  <Badge variant={item.qty === 0 ? "outOfStock" : "lowStock"}>{item.qty} left</Badge>
-                </div>
-              ))}
+        {/* Low stock + Recent orders side by side on desktop */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Low stock alerts */}
+          <div className="bg-white border border-brand-cream-dark rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="eyebrow">Low Stock</p>
+              {lowStock.length > 0 && (
+                <Link href={`/${locale}/admin/products?filter=lowStock`} className="text-[11px] tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40">
+                  Manage
+                </Link>
+              )}
             </div>
+            {loading ? (
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
+            ) : lowStock.length === 0 ? (
+              <p className="text-sm text-brand-brown/40 py-4 text-center">All stocked up</p>
+            ) : (
+              <div className="space-y-1.5">
+                {lowStock.slice(0, 6).map((item, i) => (
+                  <Link
+                    href={`/${locale}/admin/products/${item.productId}`}
+                    key={i}
+                    className="flex items-center justify-between text-sm py-1 hover:text-brand-gold transition-colors"
+                  >
+                    <span className="text-brand-brown/80 truncate">{item.productName} · {item.size} · {item.color}</span>
+                    <Badge variant="lowStock">{item.qty} left</Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Recent orders */}
-        <div className="bg-white rounded-2xl p-4 shadow-card">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-brand-brown">Recent Orders</h2>
-            <Link href={`/${locale}/admin/orders`} className="text-xs text-brand-gold font-medium">View all</Link>
+          {/* Recent orders */}
+          <div className="bg-white border border-brand-cream-dark rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="eyebrow">Recent Orders</p>
+              <Link href={`/${locale}/admin/orders`} className="text-[11px] tracking-luxe uppercase text-brand-gold border-b border-brand-gold/40">
+                View all
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            ) : recentOrders.length === 0 ? (
+              <p className="text-sm text-brand-brown/40 text-center py-4">No orders yet</p>
+            ) : (
+              <div className="space-y-1.5">
+                {recentOrders.slice(0, 6).map((order) => (
+                  <Link
+                    href={`/${locale}/admin/orders`}
+                    key={order.id}
+                    className="flex items-center justify-between py-1.5 text-sm hover:bg-brand-cream/50 -mx-1 px-1 rounded transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-brand-brown truncate">{order.customer.name}</p>
+                      <p className="text-[11px] text-brand-brown/50">#{order.id.slice(0, 6).toUpperCase()} · ₪{order.total.toLocaleString()}</p>
+                    </div>
+                    {statusBadge(order.status)}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-
-          {loading ? (
-            <div className="space-y-2">
-              {[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-            </div>
-          ) : recentOrders.length === 0 ? (
-            <p className="text-sm text-brand-brown/40 text-center py-4">No orders yet</p>
-          ) : (
-            <div className="space-y-2">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between py-2 border-b border-brand-cream last:border-0">
-                  <div>
-                    <p className="text-sm font-semibold text-brand-brown">{order.customer.name}</p>
-                    <p className="text-xs text-brand-brown/50">#{order.id.slice(0, 8).toUpperCase()} · ₪{order.total.toLocaleString()}</p>
-                  </div>
-                  {statusBadge(order.status)}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>
