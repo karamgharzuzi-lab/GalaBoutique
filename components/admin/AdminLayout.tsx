@@ -135,14 +135,14 @@ export default function AdminLayout({
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex-1 flex flex-col min-h-screen min-w-0">
           {/* Mobile header */}
           <header className="md:hidden bg-brand-brown text-brand-cream px-5 h-14 flex items-center justify-between flex-shrink-0">
             <span className="h-display text-lg text-brand-gold tracking-wide">GalaBoutique</span>
             <span className="eyebrow text-white/40">ניהול</span>
           </header>
 
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
 
           {/* Mobile bottom nav */}
           <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-brown border-t border-white/10 z-40 safe-area-pb">
