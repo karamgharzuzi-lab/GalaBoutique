@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Heebo } from "next/font/google";
+import { Inter, Heebo, Cormorant_Garamond } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -15,6 +15,13 @@ const inter = Inter({
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
   variable: "--font-heebo",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -45,7 +52,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={isRTL ? "rtl" : "ltr"}
-      className={`${inter.variable} ${heebo.variable}`}
+      className={`${inter.variable} ${heebo.variable} ${cormorant.variable}`}
     >
       <body className={`font-sans antialiased bg-brand-cream text-brand-brown min-h-screen`}>
         <NextIntlClientProvider messages={messages}>

@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# PWA generated files (change hash each build)
+public/workbox-*.js
+
+# Claude Code worktrees
+.claude/worktrees/

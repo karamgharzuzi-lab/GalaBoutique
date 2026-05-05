@@ -95,11 +95,14 @@ function InventoryInner() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-brand-brown">Inventory</h1>
+    <div className="p-5 md:p-8 max-w-5xl mx-auto pb-24 md:pb-8">
+      <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <p className="eyebrow mb-1">Bulk update</p>
+          <h1 className="h-display text-3xl text-brand-brown">Stock</h1>
+        </div>
         {rows.some((r) => r.dirty) && (
-          <Button size="sm" loading={saving} onClick={saveAll}>Update All</Button>
+          <Button size="sm" loading={saving} onClick={saveAll}>Save All Changes</Button>
         )}
       </div>
 
@@ -108,15 +111,15 @@ function InventoryInner() {
           {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+        <div className="bg-white border border-brand-cream-dark rounded-xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-brand-cream-dark">
+            <thead className="border-b border-brand-cream-dark bg-brand-cream/30">
               <tr>
-                <th className="text-start px-4 py-3 text-xs font-semibold text-brand-brown/60">Product</th>
-                <th className="text-start px-4 py-3 text-xs font-semibold text-brand-brown/60">Size</th>
-                <th className="text-start px-4 py-3 text-xs font-semibold text-brand-brown/60">Color</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-brand-brown/60">Current</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-brand-brown/60">New Qty</th>
+                <th className="text-start px-4 py-3 eyebrow">Product</th>
+                <th className="text-start px-4 py-3 eyebrow">Size</th>
+                <th className="text-start px-4 py-3 eyebrow">Color</th>
+                <th className="text-center px-4 py-3 eyebrow">Current</th>
+                <th className="text-center px-4 py-3 eyebrow">New</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>

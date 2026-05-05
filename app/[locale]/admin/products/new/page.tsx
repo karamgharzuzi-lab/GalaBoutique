@@ -10,8 +10,11 @@ export default function NewProductPage() {
   return (
     <AdminLayout locale={locale}>
       <ToastProvider>
-        <div className="p-4 md:p-6 max-w-4xl mx-auto pb-24 md:pb-8">
-          <h1 className="text-2xl font-bold text-brand-brown mb-6">New Product</h1>
+        <div className="p-5 md:p-8 max-w-4xl mx-auto pb-24 md:pb-8">
+          <div className="mb-6">
+            <p className="eyebrow mb-1">Catalog</p>
+            <h1 className="h-display text-3xl text-brand-brown">New Product</h1>
+          </div>
           <ProductForm />
         </div>
       </ToastProvider>

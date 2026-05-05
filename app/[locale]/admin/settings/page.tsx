@@ -32,11 +32,14 @@ function SettingsInner() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-lg mx-auto pb-24 md:pb-8">
-      <h1 className="text-2xl font-bold text-brand-brown mb-6">Settings</h1>
+    <div className="p-5 md:p-8 max-w-lg mx-auto pb-24 md:pb-8">
+      <div className="mb-6">
+        <p className="eyebrow mb-1">Configuration</p>
+        <h1 className="h-display text-3xl text-brand-brown">Settings</h1>
+      </div>
 
-      <div className="bg-white rounded-2xl shadow-card p-6 space-y-5">
-        <h2 className="text-sm font-bold text-brand-brown">Shipping Prices</h2>
+      <div className="bg-white border border-brand-cream-dark rounded-xl p-6 space-y-5">
+        <p className="eyebrow">Shipping Prices</p>
 
         {loading ? (
           <div className="flex justify-center py-8">
@@ -51,14 +54,14 @@ function SettingsInner() {
               { key: "freeShippingThreshold", label: "Free Shipping Threshold (₪)" },
             ].map(({ key, label }) => (
               <div key={key}>
-                <label className="block text-sm font-semibold text-brand-brown mb-1">{label}</label>
+                <label className="block text-[11px] font-semibold tracking-wide uppercase text-brand-brown/70 mb-1.5">{label}</label>
                 <input
                   type="number"
                   min="0"
                   step="1"
                   value={config[key as keyof ShippingConfig]}
                   onChange={(e) => setField(key as keyof ShippingConfig, e.target.value)}
-                  className="w-full border border-brand-cream-dark rounded-xl px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                  className="w-full border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
                 />
               </div>
             ))}

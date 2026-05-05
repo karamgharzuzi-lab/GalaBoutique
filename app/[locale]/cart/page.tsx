@@ -60,6 +60,7 @@ function CartInner() {
   const shippingCost = config ? calculateShipping(config, region, subtotal) : 0;
   const total = subtotal + shippingCost;
   const isFreeShipping = config ? subtotal >= config.freeShippingThreshold : false;
+  const freeShipDelta = config ? Math.max(0, config.freeShippingThreshold - subtotal) : 0;
 
   function refreshCart() {
     setItems(getCart());
@@ -135,13 +136,13 @@ function CartInner() {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4 text-center">
-        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-brand-cream-dark">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5 px-4 text-center">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-brand-cream-dark">
           <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
           <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <p className="text-xl font-bold text-brand-brown">{t("empty")}</p>
-        <p className="text-sm text-brand-brown/60">{t("emptyDesc")}</p>
+        <h1 className="h-display text-3xl text-brand-brown">{t("empty")}</h1>
+        <p className="text-sm text-brand-brown/60 max-w-xs">{t("emptyDesc")}</p>
         <Link href={`/${locale}/shop`}>
           <Button>{t("continueShopping")}</Button>
         </Link>
@@ -150,17 +151,33 @@ function CartInner() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
-      <h1 className="text-2xl font-bold text-brand-brown mb-6">{t("title")}</h1>
+    <div className="max-w-2xl mx-auto px-5 pt-6 pb-32">
+      <p className="eyebrow mb-1">{t("title")}</p>
+      <h1 className="h-display text-3xl text-brand-brown mb-6">Your Bag</h1>
+
+      {/* Free shipping progress */}
+      {!isFreeShipping && config && freeShipDelta > 0 && (
+        <div className="mb-6 bg-white border border-brand-cream-dark rounded-xl p-3 text-xs text-brand-brown/70">
+          <p>
+            Add <span className="font-semibold text-brand-brown">₪{freeShipDelta.toLocaleString()}</span> more for free shipping
+          </p>
+          <div className="mt-2 h-1 bg-brand-cream-dark rounded-full overflow-hidden">
+            <div
+              className="h-full bg-brand-gold transition-all duration-500"
+              style={{ width: `${Math.min(100, (subtotal / config.freeShippingThreshold) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Cart items */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-8">
         {items.map((item) => (
-          <div key={`${item.productId}-${item.size}-${item.color}`} className="bg-white rounded-2xl p-3 flex gap-3 shadow-card">
+          <div key={`${item.productId}-${item.size}-${item.color}`} className="bg-white border border-brand-cream-dark rounded-xl p-3 flex gap-3">
             {/* Thumbnail */}
-            <div className="w-18 h-18 flex-shrink-0 rounded-xl overflow-hidden bg-brand-cream">
+            <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-brand-cream-dark/30">
               {item.imageUrl ? (
-                <Image src={item.imageUrl} alt={item.nameEn} width={72} height={72} className="object-cover w-full h-full" />
+                <Image src={item.imageUrl} alt={item.nameEn} width={80} height={80} className="object-cover w-full h-full" />
               ) : (
                 <div className="w-full h-full bg-brand-cream-dark" />
               )}
@@ -168,77 +185,73 @@ function CartInner() {
 
             {/* Details */}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-brand-brown text-sm truncate">
+              <p className="font-medium text-brand-brown text-sm leading-snug line-clamp-2">
                 {locale === "he" ? item.nameHe : item.nameEn}
               </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs text-brand-brown/60">{item.size}</span>
-                <span
-                  className="w-3 h-3 rounded-full border border-white ring-1 ring-gray-200"
-                  style={{ backgroundColor: item.colorHex }}
-                />
-                <span className="text-xs text-brand-brown/60">{item.color}</span>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-[11px] uppercase tracking-wide text-brand-brown/60">{item.size}</span>
+                <span className="w-3 h-3 rounded-full ring-1 ring-brand-brown/15" style={{ backgroundColor: item.colorHex }} />
+                <span className="text-[11px] text-brand-brown/60">{item.color}</span>
               </div>
-              <p className="text-sm font-bold text-brand-brown mt-1">
-                ₪{(item.unitPrice * item.qty).toLocaleString()}
-              </p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-sm font-semibold text-brand-brown">
+                  ₪{(item.unitPrice * item.qty).toLocaleString()}
+                </p>
+                <div className="inline-flex items-center border border-brand-brown/15 rounded-full">
+                  <button
+                    onClick={() => changeQty(item, -1)}
+                    disabled={item.qty <= 1}
+                    aria-label="Decrease"
+                    className="w-7 h-7 text-brand-brown text-base disabled:opacity-30 hover:bg-brand-brown/5 transition-colors flex items-center justify-center rounded-full"
+                  >−</button>
+                  <span className="text-xs font-semibold text-brand-brown w-5 text-center">{item.qty}</span>
+                  <button
+                    onClick={() => changeQty(item, 1)}
+                    disabled={item.qty >= 10}
+                    aria-label="Increase"
+                    className="w-7 h-7 text-brand-brown text-base disabled:opacity-30 hover:bg-brand-brown/5 transition-colors flex items-center justify-center rounded-full"
+                  >+</button>
+                </div>
+              </div>
             </div>
 
-            {/* Qty + remove */}
-            <div className="flex flex-col items-end gap-2">
-              <button
-                onClick={() => remove(item)}
-                className="text-brand-brown/30 hover:text-red-500 transition-colors"
-                aria-label={t("remove")}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" />
-                </svg>
-              </button>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => changeQty(item, -1)}
-                  disabled={item.qty <= 1}
-                  className="w-6 h-6 rounded-full border border-brand-cream-dark text-xs font-bold text-brand-brown disabled:opacity-30 flex items-center justify-center"
-                >−</button>
-                <span className="text-sm font-semibold text-brand-brown w-4 text-center">{item.qty}</span>
-                <button
-                  onClick={() => changeQty(item, 1)}
-                  disabled={item.qty >= 10}
-                  className="w-6 h-6 rounded-full border border-brand-cream-dark text-xs font-bold text-brand-brown disabled:opacity-30 flex items-center justify-center"
-                >+</button>
-              </div>
-            </div>
+            {/* Remove */}
+            <button
+              onClick={() => remove(item)}
+              className="self-start text-brand-brown/30 hover:text-red-500 transition-colors p-1"
+              aria-label={t("remove")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>
 
       {/* Shipping region */}
-      <div className="bg-white rounded-2xl p-4 mb-4 shadow-card">
-        <p className="text-sm font-semibold text-brand-brown mb-3">{tShip("north").replace("צפון", "").trim() || "Shipping Region"}</p>
+      <div className="mb-6">
+        <p className="eyebrow mb-3">{t("shipping")}</p>
         <div className="grid grid-cols-3 gap-2">
           {REGIONS.map((r) => (
             <button
               key={r}
               onClick={() => changeRegion(r)}
               className={cn(
-                "py-2 px-2 rounded-xl border-2 text-xs font-medium text-center transition-all",
+                "py-2.5 px-2 rounded-md border text-xs font-medium text-center transition-all tap-soft",
                 region === r
                   ? "border-brand-brown bg-brand-brown text-brand-cream"
-                  : "border-brand-cream-dark text-brand-brown hover:border-brand-brown/30"
+                  : "border-brand-brown/20 text-brand-brown hover:border-brand-brown/50"
               )}
             >
               {regionLabels[r]}
             </button>
           ))}
         </div>
-        {isFreeShipping && (
-          <p className="text-xs text-brand-gold font-medium mt-2 text-center">{tCommon("freeShipping")}</p>
-        )}
       </div>
 
       {/* Summary */}
-      <div className="bg-white rounded-2xl p-4 mb-6 shadow-card space-y-2">
+      <div className="bg-white border border-brand-cream-dark rounded-xl p-4 mb-6 space-y-2">
         <div className="flex justify-between text-sm text-brand-brown/70">
           <span>{t("subtotal")}</span>
           <span>₪{subtotal.toLocaleString()}</span>
@@ -251,9 +264,10 @@ function CartInner() {
             <span>₪{shippingCost}</span>
           )}
         </div>
-        <div className="flex justify-between text-base font-bold text-brand-brown border-t border-brand-cream-dark pt-2">
+        <div className="hairline" />
+        <div className="flex justify-between text-base font-bold text-brand-brown pt-1">
           <span>{t("total")}</span>
-          <span>₪{total.toLocaleString()}</span>
+          <span className="h-display text-2xl">₪{total.toLocaleString()}</span>
         </div>
       </div>
 
@@ -263,8 +277,11 @@ function CartInner() {
           {t("confirmOrder")}
         </Button>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl p-5 shadow-card space-y-4">
-          <h2 className="text-base font-bold text-brand-brown">{t("orderForm")}</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-white border border-brand-cream-dark rounded-xl p-5 space-y-4">
+          <div>
+            <p className="eyebrow mb-1">{t("orderForm")}</p>
+            <h2 className="h-display text-xl text-brand-brown">Delivery Details</h2>
+          </div>
 
           {[
             { key: "name",    label: t("fullName"),  type: "text",  hint: "" },
@@ -272,12 +289,12 @@ function CartInner() {
             { key: "address", label: t("address"),   type: "text",  hint: "" },
           ].map(({ key, label, type, hint }) => (
             <div key={key}>
-              <label className="block text-sm font-semibold text-brand-brown mb-1">{label}</label>
+              <label className="block text-xs font-semibold tracking-wide uppercase text-brand-brown/70 mb-1.5">{label}</label>
               <input
                 type={type}
                 {...register(key as keyof FormValues)}
                 className={cn(
-                  "w-full border rounded-xl px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold",
+                  "w-full border rounded-md px-3 py-3 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold",
                   errors[key as keyof FormValues] ? "border-red-400" : "border-brand-cream-dark"
                 )}
               />
@@ -289,11 +306,11 @@ function CartInner() {
           ))}
 
           <div>
-            <label className="block text-sm font-semibold text-brand-brown mb-1">{t("notes")}</label>
+            <label className="block text-xs font-semibold tracking-wide uppercase text-brand-brown/70 mb-1.5">{t("notes")}</label>
             <textarea
               {...register("notes")}
               rows={2}
-              className="w-full border border-brand-cream-dark rounded-xl px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold resize-none"
+              className="w-full border border-brand-cream-dark rounded-md px-3 py-2.5 text-sm text-brand-brown bg-brand-cream focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold resize-none"
             />
           </div>
 
