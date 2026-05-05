@@ -1,0 +1,28 @@
+{
+  "name":             "GalaBoutique Admin",
+  "short_name":       "GB Admin",
+  "description":      "GalaBoutique admin panel — manage products, orders, and inventory",
+  "id":               "/en/admin",
+  "start_url":        "/en/admin/dashboard",
+  "scope":            "/",
+  "display":          "standalone",
+  "background_color": "#3B1F0F",
+  "theme_color":      "#3B1F0F",
+  "orientation":      "portrait",
+  "lang":             "en",
+  "icons": [
+    {
+      "src":     "/icons/icon-192.png",
+      "sizes":   "192x192",
+      "type":    "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src":     "/icons/icon-512.png",
+      "sizes":   "512x512",
+      "type":    "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"]
+}
