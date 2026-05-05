@@ -30,6 +30,13 @@ body {
   transform: scaleX(-1);
 }
 
+/* Prevent iOS viewport zoom when tapping inputs with small font-size */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
 /* Hide scrollbar but allow scrolling */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
