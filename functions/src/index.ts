@@ -1,10 +1,25 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
 
 const db  = admin.firestore();
 const fcm = admin.messaging();
+
+// ---------------------------------------------------------------------------
+// Secrets — set via:
+//   firebase functions:secrets:set TWILIO_SID
+//   firebase functions:secrets:set TWILIO_TOKEN
+//   firebase functions:secrets:set TWILIO_FROM   # e.g. whatsapp:+14155238886  OR  +12015551234
+//   firebase functions:secrets:set ADMIN_PHONE   # e.g. +972501234567
+// For WhatsApp sandbox: TWILIO_FROM = whatsapp:+14155238886
+// For plain SMS:        TWILIO_FROM = +1XXXXXXXXXX  (your Twilio number)
+// ---------------------------------------------------------------------------
+const TWILIO_SID   = defineSecret("TWILIO_SID");
+const TWILIO_TOKEN = defineSecret("TWILIO_TOKEN");
+const TWILIO_FROM  = defineSecret("TWILIO_FROM");
+const ADMIN_PHONE  = defineSecret("ADMIN_PHONE");
 
 interface OrderItem {
   productId: string;
@@ -22,13 +37,45 @@ interface OrderData {
   status:   string;
 }
 
-/**
- * Triggered when a new order document is created in /orders/{orderId}.
- * Reads all FCM tokens from /fcm_tokens (saved by lib/fcm.ts on the
- * admin device) and sends a push notification to every token.
- */
+// ---------------------------------------------------------------------------
+// Twilio helper — works for both SMS and WhatsApp.
+// If TWILIO_FROM starts with "whatsapp:" the TO is also prefixed automatically.
+// ---------------------------------------------------------------------------
+async function sendTwilio(
+  sid: string, token: string,
+  from: string, to: string,
+  body: string,
+): Promise<void> {
+  const isWhatsApp = from.startsWith("whatsapp:");
+  const toFinal    = isWhatsApp && !to.startsWith("whatsapp:") ? `whatsapp:${to}` : to;
+
+  const url  = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+  const auth = Buffer.from(`${sid}:${token}`).toString("base64");
+
+  const res = await fetch(url, {
+    method:  "POST",
+    headers: {
+      Authorization:  `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ From: from, To: toFinal, Body: body }).toString(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Twilio ${res.status}: ${text}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cloud Function: fires on every new order document
+// ---------------------------------------------------------------------------
 export const onNewOrder = onDocumentCreated(
-  { document: "orders/{orderId}", region: "me-west1" },
+  {
+    document: "orders/{orderId}",
+    region:   "me-west1",
+    secrets:  [TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM, ADMIN_PHONE],
+  },
   async (event) => {
     const orderId = event.params.orderId;
     const data    = event.data?.data() as OrderData | undefined;
@@ -37,47 +84,66 @@ export const onNewOrder = onDocumentCreated(
     const { customer, items, total } = data;
     const itemCount = items.reduce((s, i) => s + i.qty, 0);
 
-    // ── Read all saved admin FCM tokens ─────────────────────────────
-    // Client saves tokens at /fcm_tokens/{token} (lib/fcm.ts)
+    const shortId   = orderId.slice(0, 8).toUpperCase();
+    const totalFmt  = total.toLocaleString("he-IL");
+    const msgBody   =
+      `🛍️ הזמנה חדשה — GalaBoutique\n` +
+      `לקוח: ${customer.name}\n` +
+      `טלפון: ${customer.phone}\n` +
+      `${itemCount} פריט${itemCount !== 1 ? "ים" : ""} · ₪${totalFmt}\n` +
+      `#${shortId}`;
+
+    // ── WhatsApp / SMS via Twilio ────────────────────────────────────────
+    const sid   = TWILIO_SID.value();
+    const token = TWILIO_TOKEN.value();
+    const from  = TWILIO_FROM.value();
+    const to    = ADMIN_PHONE.value();
+
+    if (sid && token && from && to) {
+      try {
+        await sendTwilio(sid, token, from, to, msgBody);
+        console.log(`Twilio message sent to ${to}`);
+      } catch (err) {
+        console.error("Twilio error:", err);
+      }
+    } else {
+      console.log("Twilio secrets not configured — skipping WhatsApp/SMS");
+    }
+
+    // ── FCM push (kept as secondary channel) ────────────────────────────
     const tokenSnap = await db.collection("fcm_tokens").get();
-    const tokens: string[] = tokenSnap.docs
+    const fcmTokens: string[] = tokenSnap.docs
       .map((d) => d.data().token as string | undefined)
       .filter((t): t is string => !!t);
 
-    if (tokens.length === 0) {
-      console.log("No FCM tokens found — skipping notification");
+    if (fcmTokens.length === 0) {
+      console.log("No FCM tokens — skipping push");
       return;
     }
 
-    console.log(`Sending notification to ${tokens.length} token(s) for order ${orderId}`);
-
-    // ── Build and send multicast message ────────────────────────────
     const message: admin.messaging.MulticastMessage = {
-      tokens,
+      tokens: fcmTokens,
       notification: {
         title: "🛍️ הזמנה חדשה — GalaBoutique",
-        body:  `${customer.name} הזמין ${itemCount} פריט${itemCount > 1 ? "ים" : ""} — סה״כ ₪${total.toLocaleString("he-IL")}`,
+        body:  `${customer.name} · ${itemCount} פריט${itemCount !== 1 ? "ים" : ""} · ₪${totalFmt}`,
       },
-      data: {
-        orderId,
-        screen: "orders",
-      },
+      data: { orderId, screen: "orders" },
       webpush: {
-        fcmOptions: { link: "/en/admin/orders" },
+        fcmOptions: { link: "/he/admin/orders" },
         notification: {
-          icon:  "/icons/icon-192.png",
-          badge: "/icons/icon-192.png",
-          tag:   "gala-order",
-          renotify: true,
+          icon:      "/icons/icon-192.png",
+          badge:     "/icons/icon-192.png",
+          tag:       "gala-order",
+          renotify:  true,
         },
       },
     };
 
     const response = await fcm.sendEachForMulticast(message);
-    console.log(`FCM result: ${response.successCount} ok, ${response.failureCount} failed`);
+    console.log(`FCM: ${response.successCount} ok, ${response.failureCount} failed`);
 
-    // ── Remove stale / invalid tokens ───────────────────────────────
-    const staleDeletes: Promise<admin.firestore.WriteResult>[] = [];
+    // Clean up stale tokens
+    const stale: Promise<admin.firestore.WriteResult>[] = [];
     response.responses.forEach((r, i) => {
       if (!r.success) {
         const code = r.error?.code;
@@ -85,11 +151,10 @@ export const onNewOrder = onDocumentCreated(
           code === "messaging/invalid-registration-token" ||
           code === "messaging/registration-token-not-registered"
         ) {
-          console.log(`Removing stale token: ${tokens[i].slice(0, 20)}…`);
-          staleDeletes.push(db.collection("fcm_tokens").doc(tokens[i]).delete());
+          stale.push(db.collection("fcm_tokens").doc(fcmTokens[i]).delete());
         }
       }
     });
-    if (staleDeletes.length) await Promise.all(staleDeletes);
-  }
+    if (stale.length) await Promise.all(stale);
+  },
 );
