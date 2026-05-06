@@ -18,6 +18,33 @@ function getMessagingInstance(): Messaging | null {
   return messaging;
 }
 
+async function getOrRegisterSW(): Promise<ServiceWorkerRegistration | undefined> {
+  if (!("serviceWorker" in navigator)) return undefined;
+  try {
+    // Reuse existing registration if available; otherwise register fresh.
+    const existing = await navigator.serviceWorker.getRegistration("/firebase-messaging-sw.js");
+    const reg = existing ?? await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js",
+      { updateViaCache: "none" },
+    );
+    // Wait for the SW to become active before handing it to Firebase.
+    if (reg.installing) {
+      await new Promise<void>((resolve) => {
+        reg.installing!.addEventListener("statechange", function fn(e) {
+          if ((e.target as ServiceWorker).state === "activated") {
+            (e.target as ServiceWorker).removeEventListener("statechange", fn);
+            resolve();
+          }
+        });
+      });
+    }
+    return reg;
+  } catch (err) {
+    console.error("SW registration error:", err);
+    return undefined;
+  }
+}
+
 export async function requestAndSaveFCMToken(): Promise<string | null> {
   try {
     const m = getMessagingInstance();
@@ -26,23 +53,21 @@ export async function requestAndSaveFCMToken(): Promise<string | null> {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return null;
 
+    const swReg = await getOrRegisterSW();
+
     const token = await getToken(m, {
       vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
-      serviceWorkerRegistration: await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
-      ),
+      ...(swReg ? { serviceWorkerRegistration: swReg } : {}),
     });
 
     if (token) {
-      // /fcm_tokens/{token} — 2 segments = valid document path.
-      // Cloud Function reads this same collection via Admin SDK.
       await setDoc(doc(db, "fcm_tokens", token), {
         token,
-        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
     }
 
-    return token;
+    return token ?? null;
   } catch (err) {
     console.error("FCM token error:", err);
     return null;

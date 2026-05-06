@@ -4,8 +4,22 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { onAuthChange, signOut } from "@/lib/auth";
-import { ToastProvider } from "@/components/ui/Toast";
+import { ToastProvider, useToast } from "@/components/ui/Toast";
+import { requestAndSaveFCMToken, onForegroundMessage } from "@/lib/fcm";
 import { cn } from "@/lib/utils";
+
+function FcmSetup() {
+  const { toast } = useToast();
+  useEffect(() => {
+    requestAndSaveFCMToken().catch(() => {});
+    const unsub = onForegroundMessage((payload) => {
+      const { title, body } = payload.notification ?? {};
+      toast(`${title ?? "הזמנה חדשה"}${body ? " — " + body : ""}`, "info");
+    });
+    return unsub;
+  }, [toast]);
+  return null;
+}
 
 const INACTIVITY_LIMIT = 8 * 60 * 60 * 1000; // 8 hours
 
@@ -100,6 +114,7 @@ export default function AdminLayout({
 
   return (
     <ToastProvider>
+      <FcmSetup />
       <div className="min-h-screen bg-brand-cream flex">
         {/* Sidebar — desktop */}
         <aside className="hidden md:flex flex-col w-60 bg-brand-brown text-brand-cream flex-shrink-0">

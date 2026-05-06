@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   query,
   orderBy,
   where,
@@ -104,6 +105,10 @@ export async function getOrderById(id: string): Promise<Order | null> {
 
 export async function updateOrderStatus(id: string, status: Order["status"]): Promise<void> {
   await updateDoc(doc(db, "orders", id), { status });
+}
+
+export async function deleteOrder(id: string): Promise<void> {
+  await deleteDoc(doc(db, "orders", id));
 }
 
 export async function getTodayStats(): Promise<{ count: number; revenue: number }> {

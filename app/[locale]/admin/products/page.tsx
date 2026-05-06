@@ -12,7 +12,6 @@ import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getAllProducts, deleteProduct } from "@/lib/products";
-import { seedProducts } from "@/lib/seed";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -40,25 +39,10 @@ function ProductsInner() {
   const [sort, setSort] = useState("newest");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     getAllProducts().then((p) => { setProducts(p); setLoading(false); });
   }, []);
-
-  async function handleSeed() {
-    if (!confirm("להוסיף 10 מוצרי דוגמה? ניתן למחוק אותם לאחר מכן.")) return;
-    setSeeding(true);
-    try {
-      const count = await seedProducts();
-      const fresh = await getAllProducts();
-      setProducts(fresh);
-      toast(`Added ${count} sample products`);
-    } catch {
-      toast("Seeding failed", "error");
-    }
-    setSeeding(false);
-  }
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -116,9 +100,6 @@ function ProductsInner() {
           <Link href={`/${locale}/admin/inventory`}>
             <Button variant="outline" size="sm">עדכון מלאי</Button>
           </Link>
-          <Button variant="outline" size="sm" loading={seeding} onClick={handleSeed}>
-            {seeding ? "מוסיף..." : "דוגמאות"}
-          </Button>
           <Link href={`/${locale}/admin/products/new`}>
             <Button size="sm">+ חדש</Button>
           </Link>
