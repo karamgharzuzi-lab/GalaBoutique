@@ -12,8 +12,7 @@ service cloud.firestore {
     // Orders: anyone can create; only admin can read or update
     match /orders/{orderId} {
       allow create: if true;
-      allow read, update: if request.auth != null;
-      allow delete: if false;
+      allow read, update, delete: if request.auth != null;
     }
 
     // Config (shipping): public read, admin-only write

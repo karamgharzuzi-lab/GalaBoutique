@@ -59,12 +59,22 @@ function DashboardInner() {
 
   async function handleDelete() {
     if (!deleteId) return;
-    setDeleting(true);
-    await deleteOrder(deleteId);
-    setRecentOrders((prev) => prev.filter((o) => o.id !== deleteId));
+    const id = deleteId;
+    // Close modal and remove from list immediately
     setDeleteId(null);
-    setDeleting(false);
-    toast("הזמנה נמחקה");
+    setRecentOrders((prev) => prev.filter((o) => o.id !== id));
+    setDeleting(true);
+    try {
+      await deleteOrder(id);
+      toast("הזמנה נמחקה");
+    } catch {
+      // Restore the order if the server call failed
+      toast("שגיאה במחיקת ההזמנה", "error");
+      const [, { orders }] = await Promise.all([null, getOrders({ pageSize: 8 })]);
+      setRecentOrders(orders);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const pendingCount = recentOrders.filter((o) => o.status === "pending").length;
