@@ -41,9 +41,8 @@
   "categories": {
     "dresses": "Dresses",
     "tops": "Tops",
-    "jackets": "Jackets",
-    "coats": "Coats",
-    "accessories": "Accessories",
+    "pants": "Pants",
+    "suits": "Suits",
     "all": "All"
   },
   "shop": {
