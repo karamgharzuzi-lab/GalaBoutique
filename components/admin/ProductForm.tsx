@@ -132,11 +132,9 @@ export default function ProductForm({ initial }: ProductFormProps) {
   // Section open state
   const [openSection, setOpenSection] = useState<"basics" | "media" | "variants">("basics");
 
-  // Basic fields
-  const [nameEn, setNameEn] = useState(initial?.name.en ?? "");
-  const [nameHe, setNameHe] = useState(initial?.name.he ?? "");
-  const [descEn, setDescEn] = useState(initial?.description.en ?? "");
-  const [descHe, setDescHe] = useState(initial?.description.he ?? "");
+  // Basic fields (single value written to both .en and .he)
+  const [name, setName] = useState(initial?.name.he || initial?.name.en || "");
+  const [desc, setDesc] = useState(initial?.description.he || initial?.description.en || "");
   const [category, setCategory] = useState<Product["category"]>(initial?.category ?? "dresses");
   const [isBestSeller, setIsBestSeller] = useState(initial?.isBestSeller ?? false);
   const [isSpecialOffer, setIsSpecialOffer] = useState(initial?.isSpecialOffer ?? false);
@@ -268,8 +266,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
   }
 
   async function handleSave() {
-    if (!nameEn.trim()) {
-      toast("שם באנגלית הוא שדה חובה", "error");
+    if (!name.trim()) {
+      toast("שם המוצר הוא שדה חובה", "error");
       setOpenSection("basics");
       return;
     }
@@ -293,8 +291,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
     });
 
     const data = {
-      name: { en: nameEn, he: nameHe },
-      description: { en: descEn, he: descHe },
+      name: { en: name, he: name },
+      description: { en: desc, he: desc },
       category,
       images,
       variants: builtVariants,
@@ -324,26 +322,18 @@ export default function ProductForm({ initial }: ProductFormProps) {
       {/* Section 1: Basics */}
       <Section
         title="פרטי מוצר"
-        subtitle={`${nameEn || "ללא שם"} · ${category}`}
+        subtitle={`${name || "ללא שם"} · ${category}`}
         open={openSection === "basics"}
         onToggle={() => setOpenSection(openSection === "basics" ? "media" : "basics")}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="flex flex-col gap-4 mb-4">
           <div>
-            <FieldLabel>שם (אנגלית)</FieldLabel>
-            <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={inputBase} />
+            <FieldLabel>שם המוצר</FieldLabel>
+            <input value={name} onChange={(e) => setName(e.target.value)} dir="rtl" className={inputBase} />
           </div>
           <div>
-            <FieldLabel>שם (עברית)</FieldLabel>
-            <input value={nameHe} onChange={(e) => setNameHe(e.target.value)} dir="rtl" className={inputBase} />
-          </div>
-          <div>
-            <FieldLabel>תיאור (אנגלית)</FieldLabel>
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} className={cn(inputBase, "resize-none")} />
-          </div>
-          <div>
-            <FieldLabel>תיאור (עברית)</FieldLabel>
-            <textarea value={descHe} onChange={(e) => setDescHe(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
+            <FieldLabel>תיאור</FieldLabel>
+            <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
           </div>
         </div>
 
