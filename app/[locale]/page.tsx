@@ -50,7 +50,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
             fill
             priority
             className="object-contain object-bottom-left"
-            style={{ mixBlendMode: "multiply", transform: "scale(1.5)", transformOrigin: "bottom left" }}
+            style={{ mixBlendMode: "multiply", transform: "scale(1.25)", transformOrigin: "bottom left" }}
           />
         </div>
 
