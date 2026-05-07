@@ -15,6 +15,46 @@ import { SIZES, CATEGORIES } from "@/lib/types";
 
 interface ColorDef { name: string; hex: string }
 
+// Lookup table: hex → Hebrew label (approximate matching via RGB distance)
+const COLOR_NAME_MAP: Array<{ hex: string; he: string; en: string }> = [
+  { hex: "#0000FF", he: "כחול",      en: "Blue"       },
+  { hex: "#1B2A4A", he: "כחול כהה",  en: "Navy"       },
+  { hex: "#008000", he: "ירוק",      en: "Green"      },
+  { hex: "#006400", he: "ירוק כהה",  en: "Dark Green" },
+  { hex: "#FF0000", he: "אדום",      en: "Red"        },
+  { hex: "#FFFFFF", he: "לבן",       en: "White"      },
+  { hex: "#F5F5F5", he: "לבן",       en: "White"      },
+  { hex: "#FFFF00", he: "צהוב",      en: "Yellow"     },
+  { hex: "#000000", he: "שחור",      en: "Black"      },
+  { hex: "#1A1A1A", he: "שחור",      en: "Black"      },
+  { hex: "#FFC0CB", he: "ורוד",      en: "Pink"       },
+  { hex: "#FF69B4", he: "ורוד",      en: "Pink"       },
+  { hex: "#800080", he: "סגול",      en: "Purple"     },
+  { hex: "#C9A84C", he: "זהב",       en: "Gold"       },
+  { hex: "#5C2E00", he: "חום",       en: "Brown"      },
+  { hex: "#D4B896", he: "בז׳",       en: "Beige"      },
+  { hex: "#808080", he: "אפור",      en: "Gray"       },
+  { hex: "#FFA500", he: "כתום",      en: "Orange"     },
+];
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function hexToColorName(hex: string): string {
+  const [r1, g1, b1] = hexToRgb(hex);
+  let best = COLOR_NAME_MAP[0];
+  let bestDist = Infinity;
+  for (const entry of COLOR_NAME_MAP) {
+    const [r2, g2, b2] = hexToRgb(entry.hex);
+    const dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2;
+    if (dist < bestDist) { bestDist = dist; best = entry; }
+  }
+  // Only substitute if the match is close enough (threshold ~60² per channel avg)
+  return bestDist < 10800 ? best.he : hex.toUpperCase();
+}
+
 interface ProductFormProps {
   initial?: Product;
 }
@@ -211,7 +251,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
   }
 
   function addColor() {
-    const name = newColorName.trim() || newColorHex.toUpperCase();
+    const name = newColorName.trim() || hexToColorName(newColorHex);
     if (colors.find((c) => c.name.toLowerCase() === name.toLowerCase())) return;
     setColors((prev) => [...prev, { name, hex: newColorHex }]);
     setNewColorName("");
@@ -399,7 +439,10 @@ export default function ProductForm({ initial }: ProductFormProps) {
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addColor())}
               className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm text-brand-brown bg-brand-cream w-44 focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
             />
-            <input type="color" value={newColorHex} onChange={(e) => setNewColorHex(e.target.value)}
+            <input type="color" value={newColorHex} onChange={(e) => {
+              setNewColorHex(e.target.value);
+              if (!newColorName.trim()) setNewColorName(hexToColorName(e.target.value));
+            }}
               className="w-10 h-10 border border-brand-cream-dark rounded-md cursor-pointer"
               aria-label="Pick color"
             />
