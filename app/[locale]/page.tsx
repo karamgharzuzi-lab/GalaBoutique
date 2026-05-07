@@ -42,40 +42,38 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
           }}
         />
 
-        {/* Model illustration — left side, blends into brown via multiply */}
-        <div className="absolute inset-y-0 left-0 w-[52%] md:w-[42%] pointer-events-none select-none">
+        {/* Model illustration — bottom-left, blends into brown via multiply */}
+        <div className="absolute bottom-0 left-0 w-[72%] md:w-[55%] h-full pointer-events-none select-none">
           <Image
             src="/images/hero-model.png"
             alt=""
             fill
             priority
-            className="object-contain object-bottom"
+            className="object-contain object-bottom-left"
             style={{ mixBlendMode: "multiply" }}
           />
         </div>
 
-        {/* Text — shifted right so it doesn't overlap the model */}
-        <div className="relative flex justify-end">
-          <div className="w-[55%] md:w-1/2 px-5 py-16 md:py-28 text-center">
-            <p className="eyebrow text-brand-gold/80 mb-5">{t("heroSubtitle")}</p>
-            <h1 className="h-display text-4xl md:text-6xl text-brand-cream mb-3 leading-[1.05] text-balance">
-              GalaBoutique
-            </h1>
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <span className="w-8 h-px bg-brand-gold/60" />
-              <span className="w-1.5 h-1.5 bg-brand-gold rotate-45" />
-              <span className="w-8 h-px bg-brand-gold/60" />
-            </div>
-            <p className="h-display text-lg md:text-xl text-brand-cream/85 italic font-normal mb-10 text-balance">
-              {t("heroTagline")}
-            </p>
-            <Link
-              href={`/${locale}/shop`}
-              className="inline-flex items-center justify-center bg-brand-gold text-brand-brown font-semibold tracking-luxe uppercase text-xs px-8 py-3.5 rounded-sm hover:bg-brand-gold-light transition-colors tap-soft"
-            >
-              {t("shopNow")}
-            </Link>
+        {/* Text — full width, centered */}
+        <div className="relative px-6 py-20 md:py-32 max-w-2xl mx-auto text-center">
+          <p className="eyebrow text-brand-gold/80 mb-5">{t("heroSubtitle")}</p>
+          <h1 className="h-display text-5xl md:text-7xl text-brand-cream mb-3 leading-[1.05] text-balance">
+            GalaBoutique
+          </h1>
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="w-10 h-px bg-brand-gold/60" />
+            <span className="w-1.5 h-1.5 bg-brand-gold rotate-45" />
+            <span className="w-10 h-px bg-brand-gold/60" />
           </div>
+          <p className="h-display text-xl md:text-2xl text-brand-cream/85 italic font-normal mb-10 text-balance">
+            {t("heroTagline")}
+          </p>
+          <Link
+            href={`/${locale}/shop`}
+            className="inline-flex items-center justify-center bg-brand-gold text-brand-brown font-semibold tracking-luxe uppercase text-xs px-9 py-3.5 rounded-sm hover:bg-brand-gold-light transition-colors tap-soft"
+          >
+            {t("shopNow")}
+          </Link>
         </div>
       </section>
 
