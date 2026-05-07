@@ -7,27 +7,16 @@ admin.initializeApp();
 const db  = admin.firestore();
 const fcm = admin.messaging();
 
-// ---------------------------------------------------------------------------
-// Secrets — set via:
-//   firebase functions:secrets:set TWILIO_SID
-//   firebase functions:secrets:set TWILIO_TOKEN
-//   firebase functions:secrets:set TWILIO_FROM   # e.g. whatsapp:+14155238886  OR  +12015551234
-//   firebase functions:secrets:set ADMIN_PHONE   # e.g. +972501234567
-// For WhatsApp sandbox: TWILIO_FROM = whatsapp:+14155238886
-// For plain SMS:        TWILIO_FROM = +1XXXXXXXXXX  (your Twilio number)
-// ---------------------------------------------------------------------------
 const TWILIO_SID   = defineSecret("TWILIO_SID");
 const TWILIO_TOKEN = defineSecret("TWILIO_TOKEN");
 const TWILIO_FROM  = defineSecret("TWILIO_FROM");
 const ADMIN_PHONE  = defineSecret("ADMIN_PHONE");
 
 interface OrderItem {
-  productId: string;
-  nameEn:    string;
-  nameHe:    string;
-  size:      string;
-  color:     string;
-  qty:       number;
+  nameEn: string;
+  qty:    number;
+  size:   string;
+  color:  string;
 }
 
 interface OrderData {

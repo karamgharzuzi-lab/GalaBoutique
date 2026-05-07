@@ -1,70 +1,102 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onNewOrder = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
-const admin = require("firebase-admin");
+const params_1 = require("firebase-functions/params");
+const admin = __importStar(require("firebase-admin"));
+const nodemailer = __importStar(require("nodemailer"));
 admin.initializeApp();
 const db = admin.firestore();
-const fcm = admin.messaging();
-/**
- * Triggered when a new order document is created in /orders/{orderId}.
- * Reads all FCM tokens from /fcm_tokens (saved by lib/fcm.ts on the
- * admin device) and sends a push notification to every token.
- */
-exports.onNewOrder = (0, firestore_1.onDocumentCreated)({ document: "orders/{orderId}", region: "me-west1" }, async (event) => {
+const GMAIL_USER = (0, params_1.defineSecret)("GMAIL_USER");
+const GMAIL_PASS = (0, params_1.defineSecret)("GMAIL_PASS");
+exports.onNewOrder = (0, firestore_1.onDocumentCreated)({
+    document: "orders/{orderId}",
+    region: "me-west1",
+    secrets: [GMAIL_USER, GMAIL_PASS],
+}, async (event) => {
     const orderId = event.params.orderId;
     const data = event.data?.data();
     if (!data)
         return;
     const { customer, items, total } = data;
     const itemCount = items.reduce((s, i) => s + i.qty, 0);
-    // ── Read all saved admin FCM tokens ─────────────────────────────
-    // Client saves tokens at /fcm_tokens/{token} (lib/fcm.ts)
-    const tokenSnap = await db.collection("fcm_tokens").get();
-    const tokens = tokenSnap.docs
-        .map((d) => d.data().token)
-        .filter((t) => !!t);
-    if (tokens.length === 0) {
-        console.log("No FCM tokens found — skipping notification");
+    // ── Get all admin emails from Firestore ──────────────────────────
+    const adminSnap = await db.collection("admin_emails").get();
+    const adminEmails = adminSnap.docs
+        .map((d) => d.data().email)
+        .filter((e) => !!e);
+    if (adminEmails.length === 0) {
+        console.log("No admin emails found — skipping notification");
         return;
     }
-    console.log(`Sending notification to ${tokens.length} token(s) for order ${orderId}`);
-    // ── Build and send multicast message ────────────────────────────
-    const message = {
-        tokens,
-        notification: {
-            title: "🛍️ הזמנה חדשה — GalaBoutique",
-            body: `${customer.name} הזמין ${itemCount} פריט${itemCount > 1 ? "ים" : ""} — סה״כ ₪${total.toLocaleString("he-IL")}`,
-        },
-        data: {
-            orderId,
-            screen: "orders",
-        },
-        webpush: {
-            fcmOptions: { link: "/en/admin/orders" },
-            notification: {
-                icon: "/icons/icon-192.png",
-                badge: "/icons/icon-192.png",
-                tag: "gala-order",
-                renotify: true,
+    // ── Build email body ─────────────────────────────────────────────
+    const itemsList = items
+        .map((i) => `• ${i.nameEn} x${i.qty} (${i.size}, ${i.color})`)
+        .join("\n");
+    const emailBody = `
+🛍️ New GalaBoutique Order!
+
+Customer: ${customer.name}
+Phone: ${customer.phone}
+Items: ${itemCount}
+Total: ₪${total}
+Order ID: ${orderId}
+
+Items:
+${itemsList}
+    `.trim();
+    // ── Send email via Gmail ─────────────────────────────────────────
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: GMAIL_USER.value(),
+                pass: GMAIL_PASS.value(),
             },
-        },
-    };
-    const response = await fcm.sendEachForMulticast(message);
-    console.log(`FCM result: ${response.successCount} ok, ${response.failureCount} failed`);
-    // ── Remove stale / invalid tokens ───────────────────────────────
-    const staleDeletes = [];
-    response.responses.forEach((r, i) => {
-        if (!r.success) {
-            const code = r.error?.code;
-            if (code === "messaging/invalid-registration-token" ||
-                code === "messaging/registration-token-not-registered") {
-                console.log(`Removing stale token: ${tokens[i].slice(0, 20)}…`);
-                staleDeletes.push(db.collection("fcm_tokens").doc(tokens[i]).delete());
-            }
-        }
-    });
-    if (staleDeletes.length)
-        await Promise.all(staleDeletes);
+        });
+        await transporter.sendMail({
+            from: `GalaBoutique Orders <${GMAIL_USER.value()}>`,
+            to: adminEmails.join(", "),
+            subject: `🛍️ New Order — ${customer.name} — ₪${total}`,
+            text: emailBody,
+        });
+        console.log(`Email sent to: ${adminEmails.join(", ")}`);
+    }
+    catch (err) {
+        console.error("Email error:", JSON.stringify(err));
+    }
 });
 //# sourceMappingURL=index.js.map
