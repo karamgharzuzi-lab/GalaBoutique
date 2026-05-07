@@ -22,11 +22,10 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
   const bestSellers   = bestSellersResult.status === "fulfilled"   ? bestSellersResult.value.products   : [];
 
   const categories = [
-    { key: "dresses",     label: tCat("dresses") },
-    { key: "tops",        label: tCat("tops") },
-    { key: "jackets",     label: tCat("jackets") },
-    { key: "coats",       label: tCat("coats") },
-    { key: "accessories", label: tCat("accessories") },
+    { key: "dresses", label: tCat("dresses") },
+    { key: "tops",    label: tCat("tops") },
+    { key: "pants",   label: tCat("pants") },
+    { key: "suits",   label: tCat("suits") },
   ];
 
   return (

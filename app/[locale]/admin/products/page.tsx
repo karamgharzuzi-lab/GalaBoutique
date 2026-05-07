@@ -145,9 +145,8 @@ function ProductsInner() {
           <option value="all">כל הקטגוריות</option>
           <option value="dresses">שמלות</option>
           <option value="tops">חולצות</option>
-          <option value="jackets">ג׳קטים</option>
-          <option value="coats">מעילים</option>
-          <option value="accessories">אביזרים</option>
+          <option value="pants">מכנסיים</option>
+          <option value="suits">חליפות</option>
         </select>
         <select
           value={sort}

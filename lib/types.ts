@@ -13,7 +13,7 @@ export interface Product {
   id: string;
   name: { en: string; he: string };
   description: { en: string; he: string };
-  category: "dresses" | "tops" | "jackets" | "coats" | "accessories";
+  category: "dresses" | "tops" | "pants" | "suits";
   images: string[];
   variants: ProductVariant[];
   isBestSeller: boolean;
@@ -65,4 +65,4 @@ export type OrderStatus = Order["status"];
 export type ShippingRegion = Order["shippingRegion"];
 
 export const SIZES: ProductSize[] = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
-export const CATEGORIES: ProductCategory[] = ["dresses", "tops", "jackets", "coats", "accessories"];
+export const CATEGORIES: ProductCategory[] = ["dresses", "tops", "pants", "suits"];
