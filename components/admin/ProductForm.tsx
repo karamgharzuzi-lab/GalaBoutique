@@ -15,6 +15,46 @@ import { SIZES, CATEGORIES } from "@/lib/types";
 
 interface ColorDef { name: string; hex: string }
 
+// Lookup table: hex → Hebrew label (approximate matching via RGB distance)
+const COLOR_NAME_MAP: Array<{ hex: string; he: string; en: string }> = [
+  { hex: "#0000FF", he: "כחול",      en: "Blue"       },
+  { hex: "#1B2A4A", he: "כחול כהה",  en: "Navy"       },
+  { hex: "#008000", he: "ירוק",      en: "Green"      },
+  { hex: "#006400", he: "ירוק כהה",  en: "Dark Green" },
+  { hex: "#FF0000", he: "אדום",      en: "Red"        },
+  { hex: "#FFFFFF", he: "לבן",       en: "White"      },
+  { hex: "#F5F5F5", he: "לבן",       en: "White"      },
+  { hex: "#FFFF00", he: "צהוב",      en: "Yellow"     },
+  { hex: "#000000", he: "שחור",      en: "Black"      },
+  { hex: "#1A1A1A", he: "שחור",      en: "Black"      },
+  { hex: "#FFC0CB", he: "ורוד",      en: "Pink"       },
+  { hex: "#FF69B4", he: "ורוד",      en: "Pink"       },
+  { hex: "#800080", he: "סגול",      en: "Purple"     },
+  { hex: "#C9A84C", he: "זהב",       en: "Gold"       },
+  { hex: "#5C2E00", he: "חום",       en: "Brown"      },
+  { hex: "#D4B896", he: "בז׳",       en: "Beige"      },
+  { hex: "#808080", he: "אפור",      en: "Gray"       },
+  { hex: "#FFA500", he: "כתום",      en: "Orange"     },
+];
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function hexToColorName(hex: string): string {
+  const [r1, g1, b1] = hexToRgb(hex);
+  let best = COLOR_NAME_MAP[0];
+  let bestDist = Infinity;
+  for (const entry of COLOR_NAME_MAP) {
+    const [r2, g2, b2] = hexToRgb(entry.hex);
+    const dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2;
+    if (dist < bestDist) { bestDist = dist; best = entry; }
+  }
+  // Only substitute if the match is close enough (threshold ~60² per channel avg)
+  return bestDist < 10800 ? best.he : hex.toUpperCase();
+}
+
 interface ProductFormProps {
   initial?: Product;
 }
@@ -92,11 +132,9 @@ export default function ProductForm({ initial }: ProductFormProps) {
   // Section open state
   const [openSection, setOpenSection] = useState<"basics" | "media" | "variants">("basics");
 
-  // Basic fields
-  const [nameEn, setNameEn] = useState(initial?.name.en ?? "");
-  const [nameHe, setNameHe] = useState(initial?.name.he ?? "");
-  const [descEn, setDescEn] = useState(initial?.description.en ?? "");
-  const [descHe, setDescHe] = useState(initial?.description.he ?? "");
+  // Basic fields (single value written to both .en and .he)
+  const [name, setName] = useState(initial?.name.he || initial?.name.en || "");
+  const [desc, setDesc] = useState(initial?.description.he || initial?.description.en || "");
   const [category, setCategory] = useState<Product["category"]>(initial?.category ?? "dresses");
   const [isBestSeller, setIsBestSeller] = useState(initial?.isBestSeller ?? false);
   const [isSpecialOffer, setIsSpecialOffer] = useState(initial?.isSpecialOffer ?? false);
@@ -211,7 +249,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
   }
 
   function addColor() {
-    const name = newColorName.trim() || newColorHex.toUpperCase();
+    const name = newColorName.trim() || hexToColorName(newColorHex);
     if (colors.find((c) => c.name.toLowerCase() === name.toLowerCase())) return;
     setColors((prev) => [...prev, { name, hex: newColorHex }]);
     setNewColorName("");
@@ -228,8 +266,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
   }
 
   async function handleSave() {
-    if (!nameEn.trim()) {
-      toast("שם באנגלית הוא שדה חובה", "error");
+    if (!name.trim()) {
+      toast("שם המוצר הוא שדה חובה", "error");
       setOpenSection("basics");
       return;
     }
@@ -253,8 +291,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
     });
 
     const data = {
-      name: { en: nameEn, he: nameHe },
-      description: { en: descEn, he: descHe },
+      name: { en: name, he: name },
+      description: { en: desc, he: desc },
       category,
       images,
       variants: builtVariants,
@@ -284,26 +322,18 @@ export default function ProductForm({ initial }: ProductFormProps) {
       {/* Section 1: Basics */}
       <Section
         title="פרטי מוצר"
-        subtitle={`${nameEn || "ללא שם"} · ${category}`}
+        subtitle={`${name || "ללא שם"} · ${category}`}
         open={openSection === "basics"}
         onToggle={() => setOpenSection(openSection === "basics" ? "media" : "basics")}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="flex flex-col gap-4 mb-4">
           <div>
-            <FieldLabel>שם (אנגלית)</FieldLabel>
-            <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={inputBase} />
+            <FieldLabel>שם המוצר</FieldLabel>
+            <input value={name} onChange={(e) => setName(e.target.value)} dir="rtl" className={inputBase} />
           </div>
           <div>
-            <FieldLabel>שם (עברית)</FieldLabel>
-            <input value={nameHe} onChange={(e) => setNameHe(e.target.value)} dir="rtl" className={inputBase} />
-          </div>
-          <div>
-            <FieldLabel>תיאור (אנגלית)</FieldLabel>
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} className={cn(inputBase, "resize-none")} />
-          </div>
-          <div>
-            <FieldLabel>תיאור (עברית)</FieldLabel>
-            <textarea value={descHe} onChange={(e) => setDescHe(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
+            <FieldLabel>תיאור</FieldLabel>
+            <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} dir="rtl" className={cn(inputBase, "resize-none")} />
           </div>
         </div>
 
@@ -399,7 +429,10 @@ export default function ProductForm({ initial }: ProductFormProps) {
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addColor())}
               className="border border-brand-cream-dark rounded-md px-3 py-2 text-sm text-brand-brown bg-brand-cream w-44 focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
             />
-            <input type="color" value={newColorHex} onChange={(e) => setNewColorHex(e.target.value)}
+            <input type="color" value={newColorHex} onChange={(e) => {
+              setNewColorHex(e.target.value);
+              if (!newColorName.trim()) setNewColorName(hexToColorName(e.target.value));
+            }}
               className="w-10 h-10 border border-brand-cream-dark rounded-md cursor-pointer"
               aria-label="Pick color"
             />

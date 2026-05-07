@@ -112,31 +112,39 @@ function InventoryInner() {
         </div>
       ) : (
         <div className="bg-white border border-brand-cream-dark rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs table-fixed">
+            <colgroup>
+              <col className="w-[35%]" />
+              <col className="w-[10%]" />
+              <col className="w-[22%]" />
+              <col className="w-[10%]" />
+              <col className="w-[13%]" />
+              <col className="w-[10%]" />
+            </colgroup>
             <thead className="border-b border-brand-cream-dark bg-brand-cream/30">
               <tr>
-                <th className="text-start px-4 py-3 eyebrow">מוצר</th>
-                <th className="text-start px-4 py-3 eyebrow">מידה</th>
-                <th className="text-start px-4 py-3 eyebrow">צבע</th>
-                <th className="text-center px-4 py-3 eyebrow">נוכחי</th>
-                <th className="text-center px-4 py-3 eyebrow">חדש</th>
-                <th className="px-4 py-3"></th>
+                <th className="text-start px-2 py-2.5 eyebrow">מוצר</th>
+                <th className="text-start px-2 py-2.5 eyebrow">מידה</th>
+                <th className="text-start px-2 py-2.5 eyebrow">צבע</th>
+                <th className="text-center px-2 py-2.5 eyebrow">נוכ׳</th>
+                <th className="text-center px-2 py-2.5 eyebrow">חדש</th>
+                <th className="px-2 py-2.5"></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, idx) => (
                 <tr key={`${row.productId}-${row.variantIndex}`} className={cn("border-b border-brand-cream last:border-0 transition-colors", rowBg(row.currentQty))}>
-                  <td className="px-4 py-3 text-brand-brown font-medium">{row.productName}</td>
-                  <td className="px-4 py-3">
-                    <span className="font-bold text-brand-brown text-sm">{row.size}</span>
+                  <td className="px-2 py-2 text-brand-brown font-medium truncate max-w-0">{row.productName}</td>
+                  <td className="px-2 py-2">
+                    <span className="font-bold text-brand-brown">{row.size}</span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-3.5 h-3.5 rounded-full border border-white ring-1 ring-gray-200" style={{ backgroundColor: row.colorHex }} />
-                      <span className="text-brand-brown/80">{row.color}</span>
+                  <td className="px-2 py-2">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-3 h-3 flex-shrink-0 rounded-full border border-white ring-1 ring-gray-200" style={{ backgroundColor: row.colorHex }} />
+                      <span className="text-brand-brown/80 truncate">{row.color}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 py-2 text-center">
                     <span className={cn(
                       "font-bold",
                       row.currentQty === 0 ? "text-red-600" :
@@ -145,17 +153,17 @@ function InventoryInner() {
                       {row.currentQty}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 py-2 text-center">
                     <input
                       type="number" min="0" value={row.newQty}
                       onChange={(e) => setNewQty(idx, e.target.value)}
                       className={cn(
-                        "w-20 border rounded-xl px-2 py-1.5 text-sm text-center text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold",
+                        "w-full border rounded-lg px-1 py-1.5 text-xs text-center text-brand-brown bg-brand-cream focus:outline-none focus:ring-2 focus:ring-brand-gold",
                         row.dirty ? "border-brand-gold" : "border-brand-cream-dark"
                       )}
                     />
                   </td>
-                  <td className="px-4 py-3 text-end">
+                  <td className="px-2 py-2 text-end">
                     {row.dirty && (
                       <Button size="sm" variant="secondary" onClick={() => saveRow(idx)}>שמור</Button>
                     )}
