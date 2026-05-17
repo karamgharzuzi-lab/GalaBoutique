@@ -13,7 +13,7 @@ import { getProductById } from "@/lib/products";
 import { getShippingConfig, calculateShipping } from "@/lib/shipping";
 import { addToCart } from "@/lib/cart";
 import type { Product, ShippingConfig, ShippingRegion, ProductVariant } from "@/lib/types";
-import { SIZES } from "@/lib/types";
+import { LETTER_SIZES, NUMBER_SIZES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const REGIONS: ShippingRegion[] = ["north", "center", "south"];
@@ -272,7 +272,7 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
         <div className="mb-6">
           <p className="eyebrow mb-3">{t("selectSize")}</p>
           <div className="grid grid-cols-6 gap-2">
-            {SIZES.map((size) => {
+            {(product.sizeType === "numbers" ? NUMBER_SIZES : LETTER_SIZES).map((size) => {
               const v = sizeVariant(size);
               const available = v && v.quantity > 0;
               return (
