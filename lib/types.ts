@@ -14,6 +14,7 @@ export interface Product {
   name: { en: string; he: string };
   description: { en: string; he: string };
   category: "dresses" | "tops" | "pants" | "suits";
+  sizeType?: "letters" | "numbers";
   images: string[];
   variants: ProductVariant[];
   isBestSeller: boolean;
@@ -64,5 +65,7 @@ export type ProductSize = ProductVariant["size"];
 export type OrderStatus = Order["status"];
 export type ShippingRegion = Order["shippingRegion"];
 
-export const SIZES: ProductSize[] = ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "34", "36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+export const LETTER_SIZES: ProductSize[] = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+export const NUMBER_SIZES: ProductSize[] = ["34", "36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+export const SIZES: ProductSize[] = [...LETTER_SIZES, ...NUMBER_SIZES];
 export const CATEGORIES: ProductCategory[] = ["dresses", "tops", "pants", "suits"];

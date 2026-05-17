@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import type { Product, ProductVariant } from "@/lib/types";
-import { SIZES, CATEGORIES } from "@/lib/types";
+import { SIZES, LETTER_SIZES, NUMBER_SIZES, CATEGORIES } from "@/lib/types";
 
 interface ColorDef { name: string; hex: string }
 
@@ -172,6 +172,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
     return m;
   });
 
+  const [sizeType, setSizeType] = useState<"letters" | "numbers">(initial?.sizeType ?? "letters");
+
   const [saving, setSaving] = useState(false);
 
   function getVariant(size: string, color: string) {
@@ -265,6 +267,8 @@ export default function ProductForm({ initial }: ProductFormProps) {
     });
   }
 
+  const activeSizes = sizeType === "numbers" ? NUMBER_SIZES : LETTER_SIZES;
+
   async function handleSave() {
     if (!name.trim()) {
       toast("שם המוצר הוא שדה חובה", "error");
@@ -274,7 +278,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
     setSaving(true);
 
     const builtVariants: ProductVariant[] = [];
-    SIZES.forEach((size) => {
+    activeSizes.forEach((size) => {
       colors.forEach((color) => {
         const v = getVariant(size, color.name);
         const price = parseFloat(v.price);
@@ -294,6 +298,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
       name: { en: name, he: name },
       description: { en: desc, he: desc },
       category,
+      sizeType,
       images,
       variants: builtVariants,
       isBestSeller,
@@ -442,6 +447,39 @@ export default function ProductForm({ initial }: ProductFormProps) {
 
         <div className="hairline mb-4" />
 
+        {/* Size type toggle */}
+        <div className="mb-4">
+          <FieldLabel>סוג מידות</FieldLabel>
+          <div className="inline-flex rounded-lg border border-brand-cream-dark overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSizeType("letters")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-colors",
+                sizeType === "letters"
+                  ? "bg-brand-brown text-brand-cream"
+                  : "bg-brand-cream text-brand-brown hover:bg-brand-cream-dark"
+              )}
+            >
+              אותיות (XS–XXXL)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSizeType("numbers")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-colors border-s border-brand-cream-dark",
+                sizeType === "numbers"
+                  ? "bg-brand-brown text-brand-cream"
+                  : "bg-brand-cream text-brand-brown hover:bg-brand-cream-dark"
+              )}
+            >
+              מספרים (34–54)
+            </button>
+          </div>
+        </div>
+
+        <div className="hairline mb-4" />
+
         {/* Variants table */}
         <FieldLabel>וריאנטים — מידה × צבע</FieldLabel>
         <div className="overflow-x-auto -mx-1 px-1">
@@ -460,7 +498,7 @@ export default function ProductForm({ initial }: ProductFormProps) {
               </tr>
             </thead>
             <tbody>
-              {SIZES.map((size) => (
+              {activeSizes.map((size) => (
                 <tr key={size} className="border-b border-brand-cream last:border-0">
                   <td className="py-2 pr-3 font-bold text-brand-brown text-sm">{size}</td>
                   {colors.map((color) => {
