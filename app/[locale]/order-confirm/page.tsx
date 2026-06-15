@@ -76,8 +76,14 @@ export default function OrderConfirmPage() {
             </div>
             <div className="hairline mb-3" />
             <div className="flex justify-between text-xs text-brand-brown/60 mb-2">
-              <span>{t("shippingTo")} {tShip(order.shippingRegion as "north" | "center" | "south")}</span>
-              <span>{order.shippingCost === 0 ? "Free" : `₪${order.shippingCost}`}</span>
+              <span>{t("shippingTo")} {tShip(order.shippingRegion as "north" | "center" | "jish_golan" | "south")}</span>
+              <span>
+                {order.shippingRegion === "north" ? (locale === "he" ? "₪40 (ישולם לשליח)" : "₪40 (Paid to courier)") :
+                 order.shippingRegion === "center" ? (locale === "he" ? "₪50 (ישולם לשליח)" : "₪50 (Paid to courier)") :
+                 order.shippingRegion === "jish_golan" ? (locale === "he" ? "₪50 (ישולם לשליח)" : "₪50 (Paid to courier)") :
+                 order.shippingRegion === "south" ? (locale === "he" ? "₪60 (ישולם לשליח)" : "₪60 (Paid to courier)") :
+                 (locale === "he" ? "ישולם לשליח" : "Paid to courier")}
+              </span>
             </div>
             <div className="flex justify-between items-baseline text-base font-bold text-brand-brown">
               <span>Total</span>

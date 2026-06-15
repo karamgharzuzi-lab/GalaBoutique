@@ -10,29 +10,23 @@ import { ProductDetailSkeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { ToastProvider } from "@/components/ui/Toast";
 import { getProductById } from "@/lib/products";
-import { getShippingConfig, calculateShipping } from "@/lib/shipping";
 import { addToCart } from "@/lib/cart";
-import type { Product, ShippingConfig, ShippingRegion, ProductVariant } from "@/lib/types";
+import type { Product, ProductVariant } from "@/lib/types";
 import { LETTER_SIZES, NUMBER_SIZES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const REGIONS: ShippingRegion[] = ["north", "center", "south"];
-
 function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
   const t = useTranslations("product");
-  const tShip = useTranslations("shipping");
   const tCommon = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [config, setConfig] = useState<ShippingConfig | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [qty, setQty] = useState(1);
-  const [region, setRegion] = useState<ShippingRegion>("center");
   const [imgIdx, setImgIdx] = useState(0);
 
   // Touch swipe
@@ -40,9 +34,8 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
   const galleryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.all([getProductById(id), getShippingConfig()]).then(([p, c]) => {
+    getProductById(id).then((p) => {
       setProduct(p);
-      setConfig(c);
       if (p) {
         const colors = Array.from(new Set(p.variants.map((v) => v.color)));
         if (colors[0]) setSelectedColor(colors[0]);
@@ -84,13 +77,7 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
 
   const maxQty = selectedVariant ? Math.min(10, selectedVariant.quantity) : 1;
 
-  const shippingCost = config && unitPrice != null
-    ? calculateShipping(config, region, unitPrice * qty)
-    : null;
-
-  const total = unitPrice != null && shippingCost != null
-    ? unitPrice * qty + shippingCost
-    : null;
+  const total = unitPrice != null ? unitPrice * qty : null;
 
   const isOutOfStock = variantsForColor.every((v) => v.quantity === 0);
 
@@ -129,20 +116,7 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
     }
   }
 
-  const regionLabels: Record<ShippingRegion, string> = {
-    north:  tShip("northPrice"),
-    center: tShip("centerPrice"),
-    south:  tShip("southPrice"),
-  };
-
-  if (config) {
-    const subtotal = unitPrice != null ? unitPrice * qty : 0;
-    if (subtotal >= config.freeShippingThreshold) {
-      Object.keys(regionLabels).forEach((r) => {
-        regionLabels[r as ShippingRegion] = tShip(r as "north" | "center" | "south") + " — " + tCommon("freeShipping");
-      });
-    }
-  }
+  // No region labels needed as shipping is removed from product page
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -217,7 +191,7 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
         </div>
 
         {/* Price */}
-        <div className="flex items-baseline gap-3 mb-6">
+        <div className="flex items-baseline gap-3 mb-4">
           {selectedVariant ? (
             <>
               {selectedVariant.salePrice ? (
@@ -243,6 +217,10 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
             </span>
           )}
         </div>
+
+        <p className="text-xs font-medium text-brand-brown/70 mb-6 italic">
+          * {t("priceNoShipping")}
+        </p>
 
         <div className="hairline mb-6" />
 
@@ -321,49 +299,21 @@ function ProductDetailInner({ id, locale }: { id: string; locale: string }) {
           </div>
         )}
 
-        {/* Shipping region */}
-        <div className="mb-6">
-          <p className="eyebrow mb-3">{t("shippingRegion")}</p>
-          <div className="grid grid-cols-3 gap-2">
-            {REGIONS.map((r) => (
-              <button
-                key={r}
-                onClick={() => setRegion(r)}
-                className={cn(
-                  "py-2.5 px-3 rounded-md border text-xs font-medium text-center transition-all tap-soft",
-                  region === r
-                    ? "border-brand-brown bg-brand-brown text-brand-cream"
-                    : "border-brand-brown/20 text-brand-brown hover:border-brand-brown/50"
-                )}
-              >
-                {regionLabels[r]}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Live total */}
         {total !== null && (
           <div className="bg-white border border-brand-cream-dark rounded-xl p-4 mb-8">
             <div className="flex justify-between text-sm text-brand-brown/70 mb-1">
               <span>{t("quantity")} ×{qty}</span>
-              <span>₪{(unitPrice! * qty).toLocaleString()}</span>
+              <span>₪{total.toLocaleString()}</span>
             </div>
-            {shippingCost !== null && (
-              <div className="flex justify-between text-sm text-brand-brown/70 mb-2">
-                <span>{tShip(region)}</span>
-                {shippingCost === 0 ? (
-                  <span className="text-brand-gold font-medium">{tCommon("freeShipping")}</span>
-                ) : (
-                  <span>₪{shippingCost}</span>
-                )}
-              </div>
-            )}
-            <div className="hairline mb-2" />
+            <div className="hairline mb-2 mt-2" />
             <div className="flex justify-between text-base font-bold text-brand-brown">
               <span>{t("liveTotal")}</span>
               <span className="h-display text-xl">₪{total.toLocaleString()}</span>
             </div>
+            <p className="text-[11px] text-brand-brown/50 mt-2 italic">
+              * {t("priceNoShipping")}
+            </p>
           </div>
         )}
 

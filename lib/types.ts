@@ -44,7 +44,7 @@ export interface Order {
     notes: string;
   };
   items: OrderItem[];
-  shippingRegion: "north" | "center" | "south";
+  shippingRegion: "north" | "center" | "south" | "jish_golan";
   shippingCost: number;
   subtotal: number;
   total: number;

@@ -69,16 +69,21 @@
     "description": "תיאור",
     "saleBadge": "מבצע",
     "unavailable": "לא זמין",
-    "sizeGuide": "מדריך מידות"
+    "sizeGuide": "מדריך מידות",
+    "priceNoShipping": "המחיר אינו כולל משלוח"
   },
   "shipping": {
     "north": "צפון",
     "center": "מרכז",
+    "jish_golan": "ג'ש ורמת הגולן",
     "south": "דרום",
-    "northPrice": "צפון — ₪45",
-    "centerPrice": "מרכז — ₪30",
-    "southPrice": "דרום — ₪40",
-    "freeThreshold": "משלוח חינם בהזמנות מעל ₪500"
+    "northPrice": "צפון — ₪40",
+    "centerPrice": "מרכז — ₪50",
+    "jishGolanPrice": "ג'ש ורמת הגולן — ₪50",
+    "southPrice": "דרום — ₪60",
+    "freeThreshold": "משלוח חינם בהזמנות מעל ₪500",
+    "payToCourier": "תשלום לשליח",
+    "shippingNote": "דמי המשלוח משולמים במזומן ישירות לשליח בעת המסירה:"
   },
   "cart": {
     "title": "הסל שלי",

@@ -69,16 +69,21 @@
     "description": "Description",
     "saleBadge": "Sale",
     "unavailable": "Unavailable",
-    "sizeGuide": "Size Guide"
+    "sizeGuide": "Size Guide",
+    "priceNoShipping": "Price does not include shipping"
   },
   "shipping": {
     "north": "North",
     "center": "Center",
+    "jish_golan": "Jish & Golan Heights",
     "south": "South",
-    "northPrice": "North — ₪45",
-    "centerPrice": "Center — ₪30",
-    "southPrice": "South — ₪40",
-    "freeThreshold": "Free shipping on orders over ₪500"
+    "northPrice": "North — ₪40",
+    "centerPrice": "Center — ₪50",
+    "jishGolanPrice": "Jish & Golan Heights — ₪50",
+    "southPrice": "South — ₪60",
+    "freeThreshold": "Free shipping on orders over ₪500",
+    "payToCourier": "Paid to Courier",
+    "shippingNote": "Shipping fees are paid in cash directly to the courier upon delivery:"
   },
   "cart": {
     "title": "Your Cart",

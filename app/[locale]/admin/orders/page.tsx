@@ -205,8 +205,14 @@ function OrdersInner() {
                     {/* Shipping line */}
                     <div className="hairline" />
                     <div className="flex justify-between text-xs text-brand-brown/60">
-                      <span>משלוח ({order.shippingRegion === "north" ? "צפון" : order.shippingRegion === "center" ? "מרכז" : "דרום"})</span>
-                      <span>{order.shippingCost === 0 ? "חינם" : `₪${order.shippingCost}`}</span>
+                      <span>
+                        משלוח ({order.shippingRegion === "north" ? "צפון (₪40 לשליח)" :
+                                 order.shippingRegion === "center" ? "מרכז (₪50 לשליח)" :
+                                 order.shippingRegion === "jish_golan" ? "ג'ש ורמת הגולן (₪50 לשליח)" :
+                                 order.shippingRegion === "south" ? "דרום (₪60 לשליח)" :
+                                 order.shippingRegion})
+                      </span>
+                      <span>תשלום לשליח</span>
                     </div>
 
                     {/* Actions */}

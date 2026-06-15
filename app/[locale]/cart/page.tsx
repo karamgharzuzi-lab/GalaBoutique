@@ -15,12 +15,12 @@ import {
   getCart, updateCartItemQty, removeFromCart, clearCart,
   getShippingRegion, setShippingRegion, type CartItem,
 } from "@/lib/cart";
-import { getShippingConfig, calculateShipping } from "@/lib/shipping";
+import { getShippingConfig } from "@/lib/shipping";
 import { submitOrder } from "@/lib/orders";
 import type { ShippingConfig, ShippingRegion } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const REGIONS: ShippingRegion[] = ["north", "center", "south"];
+const REGIONS: ShippingRegion[] = ["north", "center", "jish_golan", "south"];
 
 const schema = (t: (k: string) => string) =>
   z.object({
@@ -57,10 +57,8 @@ function CartInner() {
   }, []);
 
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-  const shippingCost = config ? calculateShipping(config, region, subtotal) : 0;
-  const total = subtotal + shippingCost;
-  const isFreeShipping = config ? subtotal >= config.freeShippingThreshold : false;
-  const freeShipDelta = config ? Math.max(0, config.freeShippingThreshold - subtotal) : 0;
+  const shippingCost = 0; // Customer is not charged on the website, pays courier directly
+  const total = subtotal;
 
   function refreshCart() {
     setItems(getCart());
@@ -131,6 +129,7 @@ function CartInner() {
   const regionLabels: Record<ShippingRegion, string> = {
     north:  tShip("northPrice"),
     center: tShip("centerPrice"),
+    jish_golan: tShip("jishGolanPrice"),
     south:  tShip("southPrice"),
   };
 
@@ -155,20 +154,21 @@ function CartInner() {
       <p className="eyebrow mb-1">{t("title")}</p>
       <h1 className="h-display text-3xl text-brand-brown mb-6">Your Bag</h1>
 
-      {/* Free shipping progress */}
-      {!isFreeShipping && config && freeShipDelta > 0 && (
-        <div className="mb-6 bg-white border border-brand-cream-dark rounded-xl p-3 text-xs text-brand-brown/70">
-          <p>
-            Add <span className="font-semibold text-brand-brown">₪{freeShipDelta.toLocaleString()}</span> more for free shipping
-          </p>
-          <div className="mt-2 h-1 bg-brand-cream-dark rounded-full overflow-hidden">
-            <div
-              className="h-full bg-brand-gold transition-all duration-500"
-              style={{ width: `${Math.min(100, (subtotal / config.freeShippingThreshold) * 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
+      {/* Shipping Rates Info Note */}
+      <div className="mb-6 bg-brand-cream-dark/20 border border-brand-cream-dark rounded-xl p-4 text-xs text-brand-brown/80 space-y-2">
+        <p className="font-semibold text-[11px] tracking-wide uppercase text-brand-gold">
+          {locale === "he" ? "הערה לגבי משלוח" : "Shipping Information"}
+        </p>
+        <p className="leading-relaxed">
+          {tShip("shippingNote")}
+        </p>
+        <ul className="list-disc list-inside space-y-1 font-medium text-brand-brown mt-1">
+          <li>{tShip("northPrice")}</li>
+          <li>{tShip("jishGolanPrice")}</li>
+          <li>{tShip("centerPrice")}</li>
+          <li>{tShip("southPrice")}</li>
+        </ul>
+      </div>
 
       {/* Cart items */}
       <div className="space-y-3 mb-8">
@@ -232,7 +232,7 @@ function CartInner() {
       {/* Shipping region */}
       <div className="mb-6">
         <p className="eyebrow mb-3">{t("shipping")}</p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {REGIONS.map((r) => (
             <button
               key={r}
@@ -258,11 +258,7 @@ function CartInner() {
         </div>
         <div className="flex justify-between text-sm text-brand-brown/70">
           <span>{t("shipping")}</span>
-          {isFreeShipping ? (
-            <span className="text-brand-gold font-medium">{tCommon("freeShipping")}</span>
-          ) : (
-            <span>₪{shippingCost}</span>
-          )}
+          <span className="text-brand-gold font-medium">{tShip("payToCourier")}</span>
         </div>
         <div className="hairline" />
         <div className="flex justify-between text-base font-bold text-brand-brown pt-1">
